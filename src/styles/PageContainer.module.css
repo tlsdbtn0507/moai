@@ -1,0 +1,22 @@
+/* 
+ * 공통 페이지 컨테이너 스타일
+ * 태블릿 사용을 권장하며, 브라우저에서도 태블릿 뷰포트를 기준으로 합니다.
+ * 모든 페이지에 이 컨테이너 스타일을 적용합니다.
+ */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  align-items: center;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 90vh;
+  width: 100%;
+  border-radius: 2rem;
+  background-color: transparent;
+  border: 12px solid black;
+  overflow: hidden;
+}
+

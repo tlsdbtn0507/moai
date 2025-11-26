@@ -1,0 +1,38 @@
+.logo {
+  /* 로고 이미지 스타일이 필요하면 여기에 추가 */
+}
+
+.title {
+  /* h1 스타일이 필요하면 여기에 추가 */
+}
+
+.nav {
+  /* nav 스타일이 필요하면 여기에 추가 */
+}
+
+.linkButton {
+  display: inline-block;
+  margin: 1rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(to right, #FFD700, #FFA500);
+  background-color: #FFD700;
+  color: #000;
+  text-decoration: none;
+  border-radius: 2rem;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 1.2rem;
+  transition: opacity 0.2s, transform 0.1s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.linkButton:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.linkButton:active {
+  transform: translateY(0);
+  opacity: 0.95;
+}
+

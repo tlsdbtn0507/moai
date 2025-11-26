@@ -1,0 +1,114 @@
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  width: 60vw;
+  height: 75vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modalTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2c1f15;
+  margin-bottom: 1rem;
+}
+
+.inputGroup {
+  width: 100%;
+  max-width: 650px;
+  margin-top: 1.5rem;
+  padding: 0.35rem;
+  border: 5px solid #fecd28;
+  border-radius: 999px;
+  background-color: #fffdf6;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.descriptionInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #3b1a07;
+  padding: 0.85rem 1rem;
+  outline: none;
+}
+
+.descriptionInput::placeholder {
+  color: #9c9c9c;
+  font-weight: 500;
+}
+
+.submitButton {
+  border: none;
+  background: #fecd28;
+  color: #2e0020;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.85rem 1.5rem;
+  border-radius: 999px;
+  cursor: pointer;
+  min-width: 90px;
+  transition: transform 0.1s, opacity 0.2s;
+  font-family: var(--font-cookierun);
+  background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.4), transparent 45%), radial-gradient(circle at 80% 0%, rgba(255,255,255,0.3), transparent 55%), linear-gradient(135deg, #fecd28, #ffb347);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.submitButton:hover {
+  opacity: 0.9;
+}
+
+.submitButton:active {
+  transform: scale(0.98);
+}
+
+.statusMessage {
+  margin-top: 0.75rem;
+  color: #d9534f;
+  font-weight: 600;
+  text-align: center;
+}
+
+.generatedResult {
+  width: 100%;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.generatedResult h2 {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  color: #2c1f15;
+}
+
+.generatedResult img {
+  width: min(90%, 600px);
+  border-radius: 1rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
