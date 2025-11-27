@@ -1,10 +1,11 @@
-import { createSignal, onMount } from 'solid-js';
-import { getS3ImageURL, getS3TTSURL } from '../../utils/loading';
+import { createSignal, onMount, Show } from 'solid-js';
+import { getS3ImageURL, getS3TTSURL, preloadImages } from '../../utils/loading';
 import { generateImageFromPrompt } from '../../utils/gptImage';
 import { SpeechBubble } from '../SpeechBubble';
 import { SelectSunset } from './SelectSunset';
 import { ConfirmButton } from './ConfirmButton';
 import { DescribeModal } from './modal/DescribeModal';
+import { LoadingSpinner } from '../LoadingSpinner';
 
 import pageContainerStyles from '../../styles/PageContainer.module.css';
 
@@ -23,6 +24,7 @@ const DescribeImage = () => {
   const [generatedImageUrl, setGeneratedImageUrl] = createSignal<string | null>(null);
   const [generationError, setGenerationError] = createSignal<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = createSignal(false);
+  const [isReady, setIsReady] = createSignal(false);
   let handleSelectRef: ((value: 'mt' | 'sea' | 'city') => void) | null = null;
 
   const handleDescriptionSubmit = async (description: string) => {
@@ -41,7 +43,16 @@ const DescribeImage = () => {
     }
   };
 
-  onMount(() => {
+  onMount(async () => {
+    // 이미지 프리로드
+    try {
+      await preloadImages([backgroundImageStyle]);
+      setIsReady(true);
+    } catch (error) {
+      console.error('이미지 로딩 실패:', error);
+      setIsReady(true); // 에러가 발생해도 화면은 표시
+    }
+
     // 오디오 파일 목록
     const audioFiles = [
       getS3TTSURL('1-3_Introduction_1.mp3'),
@@ -213,20 +224,21 @@ const DescribeImage = () => {
   });
 
   return (
-    <div
-      class={pageContainerStyles.container}
-      style={{
-        'background-image': backgroundImageStyleURL,
-        'background-size': 'cover',
-        'background-position': 'center',
-        display: 'flex',
+    <Show when={isReady()} fallback={<LoadingSpinner />}>
+      <div
+        class={pageContainerStyles.container}
+        style={{
+          'background-image': backgroundImageStyleURL,
+          'background-size': 'cover',
+          'background-position': 'center',
+          display: 'flex',
 
-        'align-items': 'center',
-        'flex-direction': 'column-reverse',
-        padding: '0 2rem 2rem',
-        position: 'relative',
-      }}
-    >
+          'align-items': 'center',
+          'flex-direction': 'column-reverse',
+          padding: '0 2rem 2rem',
+          position: 'relative',
+        }}
+      >
       <SpeechBubble message={displayedMessage()} />
       {showSelectSunset() && handleSelectRef && (
         <div style={{     
@@ -258,7 +270,8 @@ const DescribeImage = () => {
         userInput={userInput()}
         onSubmit={handleDescriptionSubmit}
       />
-    </div>
+      </div>
+    </Show>
   );
 };
 

@@ -1,7 +1,8 @@
 import { A, useParams } from '@solidjs/router';
-import { createSignal, onMount, type JSX } from 'solid-js';
+import { createSignal, onMount, Show, type JSX } from 'solid-js';
 import { WORLD_DETAILS, type WorldDetail } from '../constants/worldDetails';
-import { getS3ImageURL } from '../utils/loading';
+import { getS3ImageURL, preloadImages } from '../utils/loading';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 import pageContainerStyles from '../styles/PageContainer.module.css';
 import styles from '../styles/WorldMap.module.css';
 
@@ -34,6 +35,7 @@ export function WorldMap() {
   const params = useParams();
   const [selectedWorldMap, setSelectedWorldMap] = createSignal(1);
   const [warningWorld, setWarningWorld] = createSignal<WorldDetail | null>(null);
+  const [isReady, setIsReady] = createSignal(false);
 
   const backgroundImageStyle = getS3ImageURL('moaiRootBg.png');
   const backgroundImageStyleURL = `url(${backgroundImageStyle})`;
@@ -42,21 +44,38 @@ export function WorldMap() {
   const closeWarningModal = () => setWarningWorld(null);
 
   // URL 파라미터에서 월드맵 ID 읽기
-  onMount(() => {
+  onMount(async () => {
     const worldMapId = params.worldMapId ? parseInt(params.worldMapId, 10) : 1;
     if (worldMapId >= 1 && worldMapId <= 4) {
       setSelectedWorldMap(worldMapId);
     }
+
+    // 모든 이미지 URL 수집
+    const imageUrls = [
+      backgroundImageStyle,
+      lockImage,
+      warningImage,
+      ...WORLD_DETAILS.map((world) => world.image),
+    ];
+
+    try {
+      await preloadImages(imageUrls);
+      setIsReady(true);
+    } catch (error) {
+      console.error('이미지 로딩 실패:', error);
+      setIsReady(true); // 에러가 발생해도 화면은 표시
+    }
   });
 
   return (
-    <div class={pageContainerStyles.container} style={{ 
-      'background-image': backgroundImageStyleURL, 
-      display: 'flex',
-      'flex-direction': 'column',
-      'align-items': 'center',
-      'justify-content': 'center',
-      }}>
+    <Show when={isReady()} fallback={<LoadingSpinner />}>
+      <div class={pageContainerStyles.container} style={{ 
+        'background-image': backgroundImageStyleURL, 
+        display: 'flex',
+        'flex-direction': 'column',
+        'align-items': 'center',
+        'justify-content': 'center',
+        }}>
      <p style={{
       'font-size': '4rem',
       'font-weight': 'bold',
@@ -154,7 +173,8 @@ export function WorldMap() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </Show>
   );
 }
 

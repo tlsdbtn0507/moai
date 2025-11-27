@@ -1,8 +1,9 @@
 import { A, useParams } from '@solidjs/router';
-import { Show, createSignal } from 'solid-js';
+import { Show, createSignal, onMount } from 'solid-js';
 import { ClassGuideCard } from '../components/ClassGuideCard';
 import { WorldMapDropdown } from '../components/WorldMapDropdown';
-import { getS3ImageURL } from '../utils/loading';
+import { getS3ImageURL, preloadImages } from '../utils/loading';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 import pageContainerStyles from '../styles/PageContainer.module.css';
 import styles from './World.module.css';
 
@@ -12,6 +13,7 @@ export function World() {
   const params = useParams();
   const worldId = () => params.worldId;
   const [activeClassId, setActiveClassId] = createSignal<number | null>(null);
+  const [isReady, setIsReady] = createSignal(false);
 
   const buttonVariantClass = (variant?: ClassVariant) => {
     if (variant === 'green') return styles.classButtonGreen;
@@ -121,11 +123,22 @@ export function World() {
   const roadMapImageStyle = getS3ImageURL(`worldMapLv${worldId()}.png`);
   const roadMapImageStyleURL = `url(${roadMapImageStyle})`;
 
+  onMount(async () => {
+    try {
+      await preloadImages([roadMapImageStyle]);
+      setIsReady(true);
+    } catch (error) {
+      console.error('이미지 로딩 실패:', error);
+      setIsReady(true); // 에러가 발생해도 화면은 표시
+    }
+  });
+
   return (
-    <div class={`${pageContainerStyles.container} ${styles.container}`} style={{ 'background-image': roadMapImageStyleURL }}>
+    <Show when={isReady()} fallback={<LoadingSpinner />}>
+      <div class={`${pageContainerStyles.container} ${styles.container}`} style={{ 'background-image': roadMapImageStyleURL }}>
       <header class={styles.header}>
         <div class={styles.headerContent}>
-          <WorldMapDropdown />
+          {/* <WorldMapDropdown /> */}
           <A href="/worldmap" class={styles.backButton}>
             월드맵으로 돌아가기
           </A>
@@ -175,7 +188,8 @@ export function World() {
           )}
         </Show>
       </div>
-    </div>
+      </div>
+    </Show>
   );
 }
 

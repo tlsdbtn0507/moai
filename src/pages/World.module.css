@@ -44,7 +44,7 @@
   font-size: 2rem;
   font-weight: 700;
   text-decoration: none;
-  border-radius: 20%;
+  border-radius: 50%;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -88,8 +88,8 @@
 .backButton {
   display: inline-block;
   padding: 0.5rem 1rem;
-  background: #6c757d;
-  color: white;
+  background: white;
+  color: black;
   text-decoration: none;
   border-radius: 4px;
   white-space: nowrap;

@@ -1,5 +1,6 @@
-import { Show, createMemo, createSignal } from 'solid-js';
-import { getS3ImageURL } from '../../../utils/loading';
+import { Show, createMemo, createSignal, createEffect } from 'solid-js';
+import { getS3ImageURL, preloadImages } from '../../../utils/loading';
+import { LoadingSpinner } from '../../LoadingSpinner';
 import styles from './Modal.module.css';
 
 type DescribeModalProps = {
@@ -22,6 +23,30 @@ export function DescribeModal(props: DescribeModalProps) {
   });
 
   const [description, setDescription] = createSignal('');
+  const [isReady, setIsReady] = createSignal(false);
+
+  // 모달이 열리고 imageUrl이 변경될 때마다 이미지 로딩
+  createEffect(async () => {
+    if (!props.isOpen) {
+      setIsReady(false);
+      return;
+    }
+    
+    const url = imageUrl();
+    setIsReady(false);
+    
+    if (url) {
+      try {
+        await preloadImages([url]);
+        setIsReady(true);
+      } catch (error) {
+        console.error('이미지 로딩 실패:', error);
+        setIsReady(true); // 에러가 발생해도 화면은 표시
+      }
+    } else {
+      setIsReady(true);
+    }
+  });
 
   const handleSubmit = async (event: Event) => {
     event.preventDefault();
@@ -38,13 +63,14 @@ export function DescribeModal(props: DescribeModalProps) {
       <div class={styles.overlay} onClick={props.onClose}>
         <div class={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h1 class={styles.modalTitle}>내가 살던 곳의 노을을 그려보자!</h1>
-          {imageUrl() && (
-            <img 
-              src={imageUrl()!} 
-              alt={props.selectedValue || ''} 
-              style={{ width: '500px', height: '400px' }}
-            />
-          )}
+          <Show when={isReady()} fallback={<LoadingSpinner />}>
+            {imageUrl() && (
+              <img 
+                src={imageUrl()!} 
+                alt={props.selectedValue || ''} 
+                style={{ width: '500px', height: '400px' }}
+              />
+            )}
           <form class={styles.inputGroup} onSubmit={handleSubmit}>
             <input
               type="text"
@@ -64,15 +90,16 @@ export function DescribeModal(props: DescribeModalProps) {
           {props.errorMessage && (
             <p class={styles.statusMessage}>{props.errorMessage}</p>
           )}
-          {props.generatedImageUrl && !props.isSubmitting && (
-            <div class={styles.generatedResult}>
-              <h2>생성된 노을</h2>
-              <img
-                src={props.generatedImageUrl}
-                alt={props.userInput || '생성된 이미지'}
-              />
-            </div>
-          )}
+            {props.generatedImageUrl && !props.isSubmitting && (
+              <div class={styles.generatedResult}>
+                <h2>생성된 노을</h2>
+                <img
+                  src={props.generatedImageUrl}
+                  alt={props.userInput || '생성된 이미지'}
+                />
+              </div>
+            )}
+          </Show>
         </div>
       </div>
     </Show>

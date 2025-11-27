@@ -1,7 +1,8 @@
 import { A } from '@solidjs/router';
-import { Show } from 'solid-js';
+import { Show, createSignal, onMount } from 'solid-js';
 import styles from './ClassGuideCard.module.css';
-import { getS3ImageURL } from '../utils/loading';
+import { getS3ImageURL, preloadImages } from '../utils/loading';
+import { LoadingSpinner } from './LoadingSpinner';
 
 type ClassGuideCardProps = {
   chapterLabel: string;
@@ -12,18 +13,32 @@ type ClassGuideCardProps = {
 };
 
 export function ClassGuideCard(props: ClassGuideCardProps) {
+  const [isReady, setIsReady] = createSignal(false);
   const isActionEnabled = () => /\/3$/.test(props.actionHref);
   const illustrationImageStyle = getS3ImageURL('sunsetOfMoai.png');
   const nonIllustrationImageStyle = getS3ImageURL('warningMai.png');
   const illustrationImageStyleURL = `url(${illustrationImageStyle})`;
   const nonIllustrationImageStyleURL = `url(${nonIllustrationImageStyle})`;
 
-  
+  onMount(async () => {
+    try {
+      await preloadImages([illustrationImageStyle, nonIllustrationImageStyle]);
+      setIsReady(true);
+    } catch (error) {
+      console.error('이미지 로딩 실패:', error);
+      setIsReady(true); // 에러가 발생해도 화면은 표시
+    }
+  });
 
 //   const descriptionText = props.description === '선행 차시를 완료하고 진행해주세요.' ? '선행 차시를 완료하고 진행해주세요.' : props.description;
 
   return (
-    <div class={styles.card}>
+    <Show when={isReady()} fallback={
+      <div class={styles.card} style={{ 'min-height': '200px', display: 'flex', 'align-items': 'center', 'justify-content': 'center' }}>
+        <LoadingSpinner size="small" />
+      </div>
+    }>
+      <div class={styles.card}>
         <h3 class={styles.heading}>{props.heading}</h3>
 
       <div class={styles.body}>
@@ -53,7 +68,8 @@ export function ClassGuideCard(props: ClassGuideCardProps) {
           </Show>
         </div>
       </div>
-    </div>
+      </div>
+    </Show>
   );
 }
 
