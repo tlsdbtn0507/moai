@@ -5,6 +5,7 @@ import { LoadingSpinner } from './LoadingSpinner';
 
 type SpeechBubbleProps = {
   message: string;
+  size?: number;
 };
 
 export function SpeechBubble(props: SpeechBubbleProps) {
@@ -30,7 +31,7 @@ export function SpeechBubble(props: SpeechBubbleProps) {
           'background-position': 'center',
           'background-repeat': 'no-repeat',
           'background-size': 'contain',
-          width: '650px',
+          width: `${props.size || 650}px`,
           height: '198px',
           display: 'flex',
           'flex-direction': 'column-reverse',

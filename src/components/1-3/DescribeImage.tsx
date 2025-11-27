@@ -5,6 +5,8 @@ import { SpeechBubble } from '../SpeechBubble';
 import { SelectSunset } from './SelectSunset';
 import { ConfirmButton } from './ConfirmButton';
 import { DescribeModal } from './modal/DescribeModal';
+import { CompareModal } from './modal/CompareModal';
+import { LoadingModal } from './modal/LoadingModal';
 import { LoadingSpinner } from '../LoadingSpinner';
 
 import pageContainerStyles from '../../styles/PageContainer.module.css';
@@ -19,6 +21,7 @@ const DescribeImage = () => {
   const [showSelectSunset, setShowSelectSunset] = createSignal(false);
   const [showConfirmButton, setShowConfirmButton] = createSignal(false);
   const [isModalOpen, setIsModalOpen] = createSignal(false);
+  const [isCompareModalOpen, setIsCompareModalOpen] = createSignal(false);
   const [selectedValue, setSelectedValue] = createSignal<'mt' | 'sea' | 'city' | null>(null);
   const [userInput, setUserInput] = createSignal('');
   const [generatedImageUrl, setGeneratedImageUrl] = createSignal<string | null>(null);
@@ -32,12 +35,15 @@ const DescribeImage = () => {
     setGenerationError(null);
     setGeneratedImageUrl(null);
     setIsGeneratingImage(true);
+    setIsModalOpen(false);
     try {
       const url = await generateImageFromPrompt(description);
       setGeneratedImageUrl(url);
+      setIsCompareModalOpen(true);
     } catch (error) {
       console.error('이미지 생성 실패', error);
       setGenerationError(error instanceof Error ? error.message : '이미지 생성에 실패했습니다.');
+      setIsModalOpen(true);
     } finally {
       setIsGeneratingImage(false);
     }
@@ -178,7 +184,7 @@ const DescribeImage = () => {
       setSelectedValue(value); // 선택된 값 저장
       
       // 새로운 메시지로 변경
-      const newMessage = "정말 대단해! 한번 보고 싶은걸?\n\n혹시 나한테 노을의 풍경을 설명해줄 수 있어?\n\n내가 너의 설명을 듣고 멋진 노을을 그려줄게";
+      const newMessage = "정말 대단해! 한번 보고 싶은걸?\n혹시 나한테 노을의 풍경을 설명해줄 수 있어?\n내가 너의 설명을 듣고 멋진 노을을 그려줄게";
       
       // 새로운 메시지로 타이핑 시작
       startTyping(newMessage);
@@ -261,7 +267,7 @@ const DescribeImage = () => {
         </div>
       )}
       <DescribeModal 
-        isOpen={isModalOpen()} 
+        isOpen={isModalOpen() && !isGeneratingImage()} 
         onClose={() => setIsModalOpen(false)}
         selectedValue={selectedValue()}
         isSubmitting={isGeneratingImage()}
@@ -270,6 +276,14 @@ const DescribeImage = () => {
         userInput={userInput()}
         onSubmit={handleDescriptionSubmit}
       />
+      <LoadingModal isOpen={isGeneratingImage()} />
+      {generatedImageUrl() && (
+        <CompareModal
+          isOpen={isCompareModalOpen()}
+          onClose={() => setIsCompareModalOpen(false)}
+          generatedImageUrl={generatedImageUrl()!}
+        />
+      )}
       </div>
     </Show>
   );

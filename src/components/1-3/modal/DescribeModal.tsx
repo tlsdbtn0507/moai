@@ -90,15 +90,6 @@ export function DescribeModal(props: DescribeModalProps) {
           {props.errorMessage && (
             <p class={styles.statusMessage}>{props.errorMessage}</p>
           )}
-            {props.generatedImageUrl && !props.isSubmitting && (
-              <div class={styles.generatedResult}>
-                <h2>생성된 노을</h2>
-                <img
-                  src={props.generatedImageUrl}
-                  alt={props.userInput || '생성된 이미지'}
-                />
-              </div>
-            )}
           </Show>
         </div>
       </div>

@@ -18,7 +18,7 @@ export async function generateImageFromPrompt(prompt: string): Promise<string> {
     },
     body: JSON.stringify({
       model: 'gpt-image-1',
-      prompt,
+      prompt: `${prompt} cartoon / flat / stylized / vector한 분위기와 스타일 적용`,
       quality: 'low',
       size: '1024x1024',
     }),
@@ -30,13 +30,23 @@ export async function generateImageFromPrompt(prompt: string): Promise<string> {
   }
 
   const data = (await response.json()) as GenerateImageResponse;
-  const imageUrl = data.data?.[0]?.url;
-
-  if (!imageUrl) {
-    throw new Error('이미지 URL을 가져오지 못했습니다.');
+  console.log('API 응답 data:', data);
+  const imageData = data.data?.[0];
+  
+  if (!imageData) {
+    throw new Error('이미지 데이터를 가져오지 못했습니다.');
   }
 
-  return imageUrl;
+  // url이 있으면 url 반환, 없으면 b64_json을 data URL로 변환
+  if (imageData.url) {
+    return imageData.url;
+  }
+  
+  if (imageData.b64_json) {
+    return `data:image/png;base64,${imageData.b64_json}`;
+  }
+
+  throw new Error('이미지 URL 또는 base64 데이터를 가져오지 못했습니다.');
 }
 
 
