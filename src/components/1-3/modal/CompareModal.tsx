@@ -97,11 +97,13 @@ export function CompareModal(props: CompareModalProps) {
       <div class={styles.overlay} onClick={props.onClose}>
         <div class={styles.modal} onClick={(e) => e.stopPropagation()}>
           <div class={styles.imageContainer}>
-            <img
-              src={props.generatedImageUrl}
-              alt="생성된 이미지"
-              class={styles.generatedImage}
-            />
+            <div class={styles.imageWrapper}>
+                <img
+                src={props.generatedImageUrl}
+                alt="생성된 이미지"
+                class={styles.generatedImage}
+                />
+            </div>
             <SpeechBubble 
               message={displayedMessage() || ''}
               size={600}

@@ -234,6 +234,7 @@ const DescribeImage = () => {
       <div
         class={pageContainerStyles.container}
         style={{
+          position: 'relative',
           'background-image': backgroundImageStyleURL,
           'background-size': 'cover',
           'background-position': 'center',
@@ -242,7 +243,7 @@ const DescribeImage = () => {
           'align-items': 'center',
           'flex-direction': 'column-reverse',
           padding: '0 2rem 2rem',
-          position: 'relative',
+          
         }}
       >
       <SpeechBubble message={displayedMessage()} />
