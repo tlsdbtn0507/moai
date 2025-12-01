@@ -3,8 +3,11 @@ import { useNavigate, useParams } from '@solidjs/router';
 import styles from './CompareModal.module.css';
 import { SpeechBubble } from '../../SpeechBubble';
 import { ConfirmButton } from '../ConfirmButton';
-import { getS3TTSURL, getS3ImageURL } from '../../../utils/loading';
+import { getS3ImageURL } from '../../../utils/loading';
 import { useDescribeImageStore } from '../../../store/1/3/describeImageStore';
+import { useTypingAnimation } from '../../../utils/hooks/useTypingAnimation';
+import { useAudioPlayback } from '../../../utils/hooks/useAudioPlayback';
+import { useSkipControls } from '../../../utils/hooks/useSkipControls';
 import modalStyles from './Modal.module.css';
 
 type CompareModalProps = {
@@ -20,11 +23,15 @@ const fullMessage = `너의 설명을 듣고 이렇게 그려봤어!
 export function CompareModal(props: CompareModalProps) {
   const navigate = useNavigate();
   const params = useParams();
-  const [displayedMessage, setDisplayedMessage] = createSignal('');
   const [showComparison, setShowComparison] = createSignal(false);
   const [description, setDescription] = createSignal('');
   const [selectedImage, setSelectedImage] = createSignal<'mt' | 'sea' | 'city' | null>(null);
-  let typingInterval: ReturnType<typeof setInterval> | null = null;
+  
+  // 타이핑 애니메이션 훅
+  const typingAnimation = useTypingAnimation({ typingSpeed: 150 });
+  
+  // 오디오 재생 훅
+  const audioPlayback = useAudioPlayback();
 
   // zustand store에서 selectedImage 구독
   createEffect(() => {
@@ -46,77 +53,44 @@ export function CompareModal(props: CompareModalProps) {
     return getS3ImageURL(`sunsetOf${capitalized}.png`);
   });
 
-  // 타이핑 애니메이션 함수
-  const startTyping = (message: string) => {
-    // 기존 타이핑 인터벌 정리
-    if (typingInterval) {
-      clearInterval(typingInterval);
-      typingInterval = null;
-    }
-    
-    let typingIndex = 0;
-    setDisplayedMessage(''); // 메시지 초기화
-    
-    typingInterval = setInterval(() => {
-      if (typingIndex < message.length) {
-        setDisplayedMessage(message.slice(0, typingIndex + 1));
-        typingIndex++;
-      } else {
-        if (typingInterval) {
-          clearInterval(typingInterval);
-          typingInterval = null;
-        }
-      }
-    }, 150); // 150ms마다 한 글자씩 추가
-  };
+  // 스킵 컨트롤 훅
+  useSkipControls({
+    isActive: () => props.isOpen,
+    isTypingSkipped: typingAnimation.isTypingSkipped,
+    onFirstSkip: () => {
+      typingAnimation.skipTyping();
+      typingAnimation.setDisplayedMessage(fullMessage);
+    },
+    onSecondSkip: () => {
+      audioPlayback.stopAudio();
+      // 버튼이 이미 표시되어 있지 않으면 표시
+      // (버튼은 displayedMessage가 fullMessage.length와 같을 때 표시되므로
+      //  메시지를 설정하면 자동으로 표시됨)
+    },
+  });
 
   // 모달이 열릴 때 Introduction3 오디오 재생 및 타이핑 애니메이션
   createEffect(() => {
     if (props.isOpen) {
-      const audioFile = getS3TTSURL('1-3_Introduction_3.mp3');
-      const audio = new Audio(audioFile);
+      // 스킵 상태 초기화
+      typingAnimation.resetSkipState();
       
-      audio.addEventListener('loadeddata', () => {
-        audio.play().catch((error) => {
-          console.error('오디오 재생 실패:', error);
-        });
-        
+      // 오디오가 재생 중이 아닐 때만 재생 (첫 번째 스킵 시 오디오는 계속 재생되도록)
+      if (!audioPlayback.isPlaying()) {
+        audioPlayback.playAudio('1-3_Introduction_3.mp3', {
+          onLoaded: () => {
         // 오디오 재생 후 0.5초 뒤에 타이핑 애니메이션 시작
         setTimeout(() => {
-          startTyping(fullMessage);
+              typingAnimation.startTyping(fullMessage);
         }, 500);
-      });
-      
-      audio.addEventListener('error', (e) => {
-        console.error('오디오 로드 실패:', e);
-      });
-      
-      audio.load();
-      
-      // 컴포넌트 언마운트 시 정리
-      return () => {
-        audio.pause();
-        audio.src = '';
-        if (typingInterval) {
-          clearInterval(typingInterval);
-          typingInterval = null;
-        }
-      };
+          },
+        });
+      }
     } else {
       // 모달이 닫힐 때 메시지 초기화
-      setDisplayedMessage('');
-      if (typingInterval) {
-        clearInterval(typingInterval);
-        typingInterval = null;
-      }
-    }
-  });
-
-  // 컴포넌트 언마운트 시 정리
-  onCleanup(() => {
-    if (typingInterval) {
-      clearInterval(typingInterval);
-      typingInterval = null;
+      typingAnimation.setDisplayedMessage('');
+      typingAnimation.resetSkipState();
+      audioPlayback.stopAudio();
     }
   });
 
@@ -134,10 +108,10 @@ export function CompareModal(props: CompareModalProps) {
                 />
             </div>
             <SpeechBubble 
-              message={displayedMessage() || ''}
+              message={typingAnimation.displayedMessage() || ''}
               size={600}
             />
-            <Show when={displayedMessage().length === fullMessage.length}>
+            <Show when={typingAnimation.displayedMessage().length === fullMessage.length}>
               <div class={styles.buttonContainer}>
                 <ConfirmButton 
                   onClick={() => {

@@ -17,12 +17,15 @@ export function SelectSunset(props: SelectSunsetProps) {
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'ArrowUp') {
       event.preventDefault();
+      event.stopPropagation(); // 전역 스킵 핸들러로 이벤트가 전달되지 않도록 차단
       setSelectedIndex((prev) => (prev > 0 ? prev - 1 : options.length - 1));
     } else if (event.key === 'ArrowDown') {
       event.preventDefault();
+      event.stopPropagation();
       setSelectedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
     } else if (event.key === 'Enter') {
       event.preventDefault();
+      event.stopPropagation(); // 엔터 입력이 스킵 컨트롤까지 가지 않도록 차단
       handleSelect(selectedIndex());
     }
   };

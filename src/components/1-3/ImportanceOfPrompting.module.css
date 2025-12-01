@@ -19,7 +19,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  /* justify-content: space-between; */
+  justify-content: center;
   gap: 2rem;
 }
 
@@ -57,13 +57,46 @@
   font-size: 1.2rem;
   color: #000;
 }
+
+.goodPromptExplanation{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  position: absolute;
+  top:25%
+}
+
+.goodPromptExample{
+  width: 200px;
+  height: 200px;
+  /* border: 1px solid #000; */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.goodPromptExample span{
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #000;
+}
+
+.goodPromptExplanation img{
+  width: 125px;
+}
+
+
 .speechBubbleContainer {
   display: flex;
   justify-content: center;
   align-items: center;
   flex: 1;
   z-index: 1;
-
     left: 1%;
     position: absolute;
 }

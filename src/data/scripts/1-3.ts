@@ -115,3 +115,29 @@ export const importanceOfPromptingScripts: ScriptInterface[] = [
   },
 ];
 
+export type SunsetSelection = 'mt' | 'sea' | 'city';
+
+export const compareImgScripts: ScriptInterface[] = [
+  {
+    id: 1,
+    concept: '노을에 대한 첫 인사',
+    script: '우와.. 오늘 노을 진짜 이쁘다. 네가 살던 곳의 노을은 어땠어?',
+    voice: '1-3_Introduction_1.mp3',
+    maiPng: '1-3/sunsetOfMoai.png',
+  },
+  {
+    id: 2,
+    concept: '노을 풍경 설명 요청',
+    script: '정말 대단해! 한번 보고 싶은걸?\n혹시 나한테 노을의 풍경을 설명해줄 수 있어?\n내가 너의 설명을 듣고 멋진 노을을 그려줄게',
+    voice: '1-3_Introduction_2.mp3',
+    maiPng: '1-3/sunsetOfMoai.png',
+  },
+  {
+    id: 3,
+    concept: '생성된 이미지에 대한 피드백 요청',
+    script: '너의 설명을 듣고 이렇게 그려봤어!\n어때? 너가 봤던 장면과 비슷한 거 같아?\n다른 점을 나한테 알려줄래?',
+    voice: '1-3_Introduction_3.mp3',
+    maiPng: '1-3/sunsetOfMoai.png',
+  },
+];
+

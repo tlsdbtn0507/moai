@@ -9,6 +9,9 @@ import { CompareModal } from './modal/CompareModal';
 import { LoadingModal } from './modal/LoadingModal';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { useDescribeImageStore } from '../../store/1/3/describeImageStore';
+import { useTypingAnimation } from '../../utils/hooks/useTypingAnimation';
+import { useAudioPlayback } from '../../utils/hooks/useAudioPlayback';
+import { useSkipControls } from '../../utils/hooks/useSkipControls';
 
 import pageContainerStyles from '../../styles/PageContainer.module.css';
 
@@ -17,8 +20,8 @@ const DescribeImage = () => {
   const backgroundImageStyleURL = `url(${backgroundImageStyle})`;
   
   const fullMessage = "우와.. 오늘 노을 진짜 이쁘다. 네가 살던 곳의 노을은 어땠어?";
+  const secondMessage = "정말 대단해! 한번 보고 싶은걸?\n혹시 나한테 노을의 풍경을 설명해줄 수 있어?\n내가 너의 설명을 듣고 멋진 노을을 그려줄게";
   
-  const [displayedMessage, setDisplayedMessage] = createSignal('');
   const [showSelectSunset, setShowSelectSunset] = createSignal(false);
   const [showConfirmButton, setShowConfirmButton] = createSignal(false);
   const [isModalOpen, setIsModalOpen] = createSignal(false);
@@ -29,6 +32,13 @@ const DescribeImage = () => {
   const [generationError, setGenerationError] = createSignal<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = createSignal(false);
   const [isReady, setIsReady] = createSignal(false);
+  
+  // 타이핑 애니메이션 훅
+  const typingAnimation = useTypingAnimation({ typingSpeed: 150 });
+  
+  // 오디오 재생 훅
+  const audioPlayback = useAudioPlayback();
+  
   let handleSelectRef: ((value: 'mt' | 'sea' | 'city') => void) | null = null;
 
   const handleDescriptionSubmit = async (description: string) => {
@@ -62,93 +72,12 @@ const DescribeImage = () => {
 
     // 오디오 파일 목록
     const audioFiles = [
-      getS3TTSURL('1-3_Introduction_1.mp3'),
-      getS3TTSURL('1-3_Introduction_2.mp3'),
-      getS3TTSURL('1-3_Introduction_3.mp3'),
+      '1-3_Introduction_1.mp3',
+      '1-3_Introduction_2.mp3',
+      '1-3_Introduction_3.mp3',
     ];
 
     let audioIndex = 0;
-    let currentAudio: HTMLAudioElement | null = null;
-    let typingInterval: ReturnType<typeof setInterval> | null = null;
-
-    // 타이핑 애니메이션 함수
-    const startTyping = (message: string) => {
-      // 기존 타이핑 인터벌 정리
-      if (typingInterval) {
-        clearInterval(typingInterval);
-        typingInterval = null;
-      }
-      
-      let typingIndex = 0;
-      setDisplayedMessage(''); // 메시지 초기화
-      
-      typingInterval = setInterval(() => {
-        if (typingIndex < message.length) {
-          setDisplayedMessage(message.slice(0, typingIndex + 1));
-          typingIndex++;
-        } else {
-          if (typingInterval) {
-            clearInterval(typingInterval);
-            typingInterval = null;
-          }
-        }
-      }, 150); // 200ms마다 한 글자씩 추가
-    };
-
-    // 오디오 재생 함수 (단일 오디오만 재생)
-    const playAudio = (index: number, onEnded?: () => void) => {
-      if (index >= audioFiles.length) {
-        console.log('✅ 모든 오디오 재생 완료');
-        return;
-      }
-
-      console.log(`🎵 오디오 재생 시도: ${audioFiles[index]} (${index + 1}/${audioFiles.length})`);
-      currentAudio = new Audio(audioFiles[index]);
-      
-      // 오디오 로드 대기
-      currentAudio.addEventListener('loadeddata', () => {
-        console.log(`📦 오디오 로드 완료: ${audioFiles[index]}`);
-        const playPromise = currentAudio!.play();
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log(`▶️ 오디오 재생 성공: ${audioFiles[index]}`);
-            })
-            .catch((error) => {
-              console.error(`❌ 오디오 재생 실패: ${audioFiles[index]}`, error);
-              console.error('에러 상세:', {
-                name: error.name,
-                message: error.message,
-              });
-            });
-        }
-      });
-
-      // 오디오 재생 완료 시
-      currentAudio.addEventListener('ended', () => {
-        console.log(`✅ 오디오 재생 완료: ${audioFiles[index]}`);
-        if (onEnded) {
-          onEnded();
-        }
-        if (index < audioFiles.length - 1) {
-          console.log('👆 다음 단계를 위해 클릭을 기다립니다...');
-        }
-      });
-
-      // 오디오 로드 에러 처리
-      currentAudio.addEventListener('error', (e) => {
-        console.error(`❌ 오디오 로드 실패: ${audioFiles[index]}`, e);
-        console.error('오디오 요소 상태:', {
-          readyState: currentAudio!.readyState,
-          networkState: currentAudio!.networkState,
-          error: currentAudio!.error,
-        });
-      });
-
-      // 오디오 로드 시작
-      currentAudio.load();
-    };
 
     // 다음 단계 진행 함수 (클릭 이벤트용)
     const proceedToNext = () => {
@@ -159,15 +88,20 @@ const DescribeImage = () => {
         document.removeEventListener('click', handleClick);
         document.removeEventListener('touchstart', handleClick);
         
+        // 스킵 상태 초기화 (다음 단계에서 다시 타이핑 애니메이션 가능하도록)
+        typingAnimation.resetSkipState();
+        
         // 다음 오디오 재생 (끝나면 다시 클릭 이벤트 등록)
-        playAudio(audioIndex, () => {
+        audioPlayback.playAudio(audioFiles[audioIndex], {
+          onEnded: () => {
           if (audioIndex < audioFiles.length - 1) {
             // 마지막 오디오가 아니면 다시 클릭 이벤트 등록
             document.addEventListener('click', handleClick);
             document.addEventListener('touchstart', handleClick);
           }
+          },
         });
-        startTyping(fullMessage); // 두 번째부터도 같은 메시지 사용 (필요시 수정 가능)
+        typingAnimation.startTyping(fullMessage); // 두 번째부터도 같은 메시지 사용 (필요시 수정 가능)
       }
     };
 
@@ -185,47 +119,72 @@ const DescribeImage = () => {
       setSelectedValue(value); // 로컬 state 저장
       useDescribeImageStore.getState().setSelectedImage(value); // store에 저장
       
-      // 새로운 메시지로 변경
-      const newMessage = "정말 대단해! 한번 보고 싶은걸?\n혹시 나한테 노을의 풍경을 설명해줄 수 있어?\n내가 너의 설명을 듣고 멋진 노을을 그려줄게";
+      // 스킵 상태 초기화
+      typingAnimation.resetSkipState();
       
       // 새로운 메시지로 타이핑 시작
-      startTyping(newMessage);
+      typingAnimation.startTyping(secondMessage);
       
       // Introduction_2 재생 (끝나면 버튼 표시)
-      playAudio(1, () => {
+      audioPlayback.playAudio(audioFiles[1], {
+        onEnded: () => {
         // 두 번째 오디오 재생 완료 시 버튼 표시
         console.log('두 번째 오디오 재생 완료');
         setShowConfirmButton(true);
+        },
       });
     };
     
     // 외부에서 접근할 수 있도록 ref에 할당
     handleSelectRef = handleSelect;
 
+    // 스킵 컨트롤 훅
+    useSkipControls({
+      isTypingSkipped: typingAnimation.isTypingSkipped,
+      onFirstSkip: () => {
+        // 현재 표시 중인 메시지 확인
+        const currentMessage = audioIndex === 0 ? fullMessage : secondMessage;
+        typingAnimation.skipTyping();
+        typingAnimation.setDisplayedMessage(currentMessage);
+      },
+      onSecondSkip: () => {
+        audioPlayback.stopAudio();
+        
+        // 현재 단계에 따라 다음 동작 수행
+        if (audioIndex === 0) {
+          // 첫 번째 오디오 중이면 선택지 표시
+          setShowSelectSunset(true);
+        } else if (audioIndex === 1) {
+          // 두 번째 오디오 중이면 버튼 표시
+          setShowConfirmButton(true);
+        }
+        
+        // 다음 단계로 진행
+        if (audioIndex < audioFiles.length - 1) {
+          proceedToNext();
+        }
+      },
+    });
+
     // 첫 번째 오디오와 대사 자동 재생 (1초 후)
     console.log('⏳ 1초 후 첫 번째 대사 애니메이션과 TTS 시작...');
     setTimeout(() => {
       console.log('🚀 첫 번째 대사 애니메이션과 TTS 시작!');
       // 첫 번째 오디오 재생 시작 (끝나면 선택지 표시)
-      playAudio(0, () => {
+      audioPlayback.playAudio(audioFiles[0], {
+        onEnded: () => {
         // 첫 번째 오디오가 끝나면 선택지 컴포넌트 표시
         setShowSelectSunset(true);
+        },
       });
       // 첫 번째 대사 타이핑 시작
       setTimeout(() => {
-        startTyping(fullMessage);
+        typingAnimation.startTyping(fullMessage);
       }, 500); // 오디오 시작 후 0.5초 뒤 대사 시작
     }, 1000);
 
     // 컴포넌트 언마운트 시 정리
     return () => {
-      if (typingInterval) {
-        clearInterval(typingInterval);
-      }
-      if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-      }
       document.removeEventListener('click', handleClick);
       document.removeEventListener('touchstart', handleClick);
     };
@@ -248,7 +207,7 @@ const DescribeImage = () => {
           
         }}
       >
-      <SpeechBubble message={displayedMessage()} />
+      <SpeechBubble message={typingAnimation.displayedMessage()} />
       {showSelectSunset() && handleSelectRef && (
         <div style={{     
             position: 'absolute',
