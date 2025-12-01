@@ -8,6 +8,7 @@ import { DescribeModal } from './modal/DescribeModal';
 import { CompareModal } from './modal/CompareModal';
 import { LoadingModal } from './modal/LoadingModal';
 import { LoadingSpinner } from '../LoadingSpinner';
+import { useDescribeImageStore } from '../../store/1/3/describeImageStore';
 
 import pageContainerStyles from '../../styles/PageContainer.module.css';
 
@@ -181,7 +182,8 @@ const DescribeImage = () => {
     const handleSelect = (value: 'mt' | 'sea' | 'city') => {
       console.log('선택된 값:', value);
       setShowSelectSunset(false);
-      setSelectedValue(value); // 선택된 값 저장
+      setSelectedValue(value); // 로컬 state 저장
+      useDescribeImageStore.getState().setSelectedImage(value); // store에 저장
       
       // 새로운 메시지로 변경
       const newMessage = "정말 대단해! 한번 보고 싶은걸?\n혹시 나한테 노을의 풍경을 설명해줄 수 있어?\n내가 너의 설명을 듣고 멋진 노을을 그려줄게";

@@ -42,22 +42,107 @@
 }
 
 .imageWrapper {
-  width: 200%;
+  /* width: 200%; */
   height: 300px;
   overflow: hidden;
 }
 
 .generatedImage {
-width: 100%;
+width: 550px;
 height: 100%;
   border-radius: 1rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  object-fit: contain;
+  /* object-fit: contain; */
+
+
 }
 
 .buttonContainer {
   position: absolute;
   top: 90%;
   left: 65%;
+}
+
+.comparisonContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.imageRow {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.imageColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.imageTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2c1f15;
+  margin: 0;
+}
+
+.comparisonImage {
+  width: 100%;
+  max-width: 300px;
+  height: 250px;
+  object-fit: contain;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.questionText {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #2c1f15;
+  margin: 0;
+  text-align: center;
+}
+
+.nextButtonContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.nextButton {
+  border: none;
+  background: #fecd28;
+  color: #2e0020;
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 1rem 3rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s;
+  font-family: var(--font-cookierun);
+  background-image: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.4), transparent 45%), radial-gradient(circle at 80% 0%, rgba(255,255,255,0.3), transparent 55%), linear-gradient(135deg, #fecd28, #ffb347);
+  min-width: 200px;
+}
+
+.nextButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nextButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.nextButton:active:not(:disabled) {
+  transform: scale(0.98);
 }
 

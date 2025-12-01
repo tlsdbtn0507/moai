@@ -1,8 +1,11 @@
-import { Show, createEffect, createSignal, onCleanup } from 'solid-js';
+import { Show, createEffect, createSignal, onCleanup, createMemo } from 'solid-js';
+import { useNavigate, useParams } from '@solidjs/router';
 import styles from './CompareModal.module.css';
 import { SpeechBubble } from '../../SpeechBubble';
 import { ConfirmButton } from '../ConfirmButton';
-import { getS3TTSURL } from '../../../utils/loading';
+import { getS3TTSURL, getS3ImageURL } from '../../../utils/loading';
+import { useDescribeImageStore } from '../../../store/1/3/describeImageStore';
+import modalStyles from './Modal.module.css';
 
 type CompareModalProps = {
   isOpen: boolean;
@@ -15,8 +18,33 @@ const fullMessage = `너의 설명을 듣고 이렇게 그려봤어!
 다른 점을 나한테 알려줄래?`;
 
 export function CompareModal(props: CompareModalProps) {
+  const navigate = useNavigate();
+  const params = useParams();
   const [displayedMessage, setDisplayedMessage] = createSignal('');
+  const [showComparison, setShowComparison] = createSignal(false);
+  const [description, setDescription] = createSignal('');
+  const [selectedImage, setSelectedImage] = createSignal<'mt' | 'sea' | 'city' | null>(null);
   let typingInterval: ReturnType<typeof setInterval> | null = null;
+
+  // zustand store에서 selectedImage 구독
+  createEffect(() => {
+    // 초기 값 설정
+    setSelectedImage(useDescribeImageStore.getState().selectedImage);
+    
+    const unsubscribe = useDescribeImageStore.subscribe((state) => {
+      setSelectedImage(state.selectedImage);
+    });
+    
+    return unsubscribe;
+  });
+
+  // 선택된 이미지 URL 생성
+  const selectedImageUrl = createMemo(() => {
+    const image = selectedImage();
+    if (!image) return null;
+    const capitalized = image.charAt(0).toUpperCase() + image.slice(1);
+    return getS3ImageURL(`sunsetOf${capitalized}.png`);
+  });
 
   // 타이핑 애니메이션 함수
   const startTyping = (message: string) => {
@@ -93,6 +121,7 @@ export function CompareModal(props: CompareModalProps) {
   });
 
   return (
+    <>
     <Show when={props.isOpen}>
       <div class={styles.overlay} onClick={props.onClose}>
         <div class={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -112,7 +141,7 @@ export function CompareModal(props: CompareModalProps) {
               <div class={styles.buttonContainer}>
                 <ConfirmButton 
                   onClick={() => {
-                    // 버튼 클릭 시 처리 (필요시 추가)
+                    setShowComparison(true);
                   }}
                   text="그래, 알겠어!"
                 />
@@ -121,7 +150,72 @@ export function CompareModal(props: CompareModalProps) {
           </div>
         </div>
       </div>
-    </Show>
+      </Show>
+      <Show when={showComparison()}>
+        <div class={styles.overlay} onClick={props.onClose}>
+          <div class={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div class={styles.comparisonContainer}>
+              <div class={styles.imageRow}>
+                <div class={styles.imageColumn}>
+                  <h3 class={styles.imageTitle}>내가 생각한 풍경</h3>
+                  <Show when={selectedImageUrl()}>
+                    <img
+                      src={selectedImageUrl()!}
+                      alt="선택한 풍경"
+                      class={styles.comparisonImage}
+                    />
+                  </Show>
+                </div>
+                <div class={styles.imageColumn}>
+                  <h3 class={styles.imageTitle}>MAI가 그린 그림</h3>
+                  <img
+                    src={props.generatedImageUrl}
+                    alt="생성된 이미지"
+                    class={styles.comparisonImage}
+                  />
+                </div>
+              </div>
+              <p class={styles.questionText}>두 그림의 어떤 부분이 다른가요?</p>
+              <form class={modalStyles.inputGroup} onSubmit={(e) => {
+                e.preventDefault();
+                const value = description().trim();
+                if (!value) return;
+                // 여기에 제출 처리 로직 추가 가능
+                console.log('비교 설명:', value);
+              }}>
+                <input
+                  type="text"
+                  class={modalStyles.descriptionInput}
+                  placeholder="어떤 부분이 다른지 자세하게 적어보세요."
+                  value={description()}
+                  onInput={(event) => setDescription(event.currentTarget.value)}
+                />
+                <button
+                  type="submit"
+                  class={modalStyles.submitButton}
+                >
+                  입력
+                </button>
+              </form>
+              <div class={styles.nextButtonContainer}>
+                <button
+                  class={styles.nextButton}
+                  disabled={!description().trim()}
+                  onClick={() => {
+                    if (!description().trim()) return;
+                    // 다음 단계로 이동: /1/3/1 -> /1/3/2
+                    const nextStepId = String(parseInt(params.stepId || '1', 10) + 1);
+                    navigate(`/${params.worldId}/${params.classId}/${nextStepId}`);
+                  }}
+                >
+                  다음으로
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Show>
+    </>
   );
 }
 
