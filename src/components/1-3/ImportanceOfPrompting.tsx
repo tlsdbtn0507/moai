@@ -1,4 +1,5 @@
 import { Show, onMount, createSignal, createEffect, onCleanup } from 'solid-js';
+import { useNavigate, useParams } from '@solidjs/router';
 import { getS3ImageURL, preloadImages } from '../../utils/loading';
 import { SpeechBubble } from '../SpeechBubble';
 import { LoadingSpinner } from '../LoadingSpinner';
@@ -18,6 +19,8 @@ const ImportanceOfPrompting = () => {
   const [audioContextActivated, setAudioContextActivated] = createSignal(false);
   const [wasSkipped, setWasSkipped] = createSignal(false); // 스킵 상태 추적
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null; // 자동 진행 타이머
+  const navigate = useNavigate();
+  const params = useParams();
   
   // 타이핑 애니메이션 훅
   const typingAnimation = useTypingAnimation({ typingSpeed: 150 });
@@ -55,6 +58,14 @@ const ImportanceOfPrompting = () => {
     }
   };
 
+  // 마지막 스크립트 이후 다음 단계(1/3/3)로 이동
+  const goToNextStep = () => {
+    const worldId = params.worldId || '1';
+    const classId = params.classId || '3';
+    const nextStepId = '4';
+    navigate(`/${worldId}/${classId}/${nextStepId}`);
+  };
+
   // 다음 스크립트로 진행
   const proceedToNext = () => {
     cancelAutoProceed(); // 타이머 취소
@@ -69,6 +80,9 @@ const ImportanceOfPrompting = () => {
       setTimeout(() => {
         setCurrentScriptIndex(nextIndex);
       }, 10);
+    } else {
+      // 마지막 스크립트 이후에는 다음 단계로 이동
+      goToNextStep();
     }
   };
 
@@ -94,8 +108,10 @@ const ImportanceOfPrompting = () => {
     onSecondSkip: () => {
       cancelAutoProceed(); // 자동 진행 타이머 취소
       audioPlayback.stopAudio();
-      // 마지막 스크립트가 아니면 다음으로 진행
-      if (currentScriptIndex() < importanceOfPromptingScripts.length - 1) {
+      // 마지막 스크립트라면 바로 다음 단계로 이동
+      if (currentScriptIndex() >= importanceOfPromptingScripts.length - 1) {
+        goToNextStep();
+      } else {
         proceedToNext();
       }
     },
@@ -134,6 +150,9 @@ const ImportanceOfPrompting = () => {
               // 스킵을 하지 않았으면 즉시 진행
               proceedToNext();
             }
+          } else {
+            // 마지막 스크립트의 음성이 끝나면 다음 단계로 이동
+            goToNextStep();
           }
         },
       });

@@ -7,6 +7,12 @@ export interface ScriptInterface {
   maiPng: string;
 }
 
+export interface MakingAvatarsScriptInterface {
+  id: number;
+  script: string;
+  voice: string;
+}
+
 export const importanceOfPromptingScripts: ScriptInterface[] = [
   {
     id: 1,
@@ -139,5 +145,28 @@ export const compareImgScripts: ScriptInterface[] = [
     voice: '1-3_Introduction_3.mp3',
     maiPng: '1-3/sunsetOfMoai.png',
   },
+];
+
+export const makingAvatarsScripts: MakingAvatarsScriptInterface[] = [
+  {
+    id: 1,
+    script: '그럼 이번엔 다른 걸 해보자.\n하늘 대신 캐릭터를 만들어보는 거야',
+    voice: '1-3_Practice_1.mp3',
+  },
+  {
+    id: 2,
+    script: '너라면 어떤 캐릭터를 만들고 싶어?\n오늘 배운 프롬프팅을 통해\n원하는 캐릭터로 만들어봐',
+    voice: '1-3_Practice_2.mp3',
+  },
+  {
+    id: 3,
+    script: '얼굴, 옷, 장신구 순서대로\n원하는 모습을 입력해 봐!',
+    voice: '1-3_Practice_3.mp3',
+  },
+  {
+    id: 4,
+    script: '짜잔~ 너만의 캐릭터가 완성됐어\n어때 맘에 들어?',
+    voice: '1-3_Practice_4.mp3',
+  }
 ];
 
