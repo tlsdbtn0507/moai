@@ -24,8 +24,11 @@ const avatarOptions = [
 
 const MakeAvatar = () => {
     const [selectedOption, setSelectedOption] = createSignal<typeof avatarOptions[0]>(avatarOptions[0]);
+    const [isInteractionDisabled, setIsInteractionDisabled] = createSignal(false);
+    const [completedOptionIds, setCompletedOptionIds] = createSignal<number[]>([]);
 
     const handleOptionClick = (option: typeof avatarOptions[0]) => {
+        if (isInteractionDisabled()) return;
         setSelectedOption(option);
     };
 
@@ -39,12 +42,18 @@ const MakeAvatar = () => {
 
     const renderAvatarOption = (option: typeof avatarOptions[0]) => {
         const isActive = () => selectedOption().id === option.id;
+        const isCompleted = () => completedOptionIds().includes(option.id);
         return (
             <div 
                 class={styles.avatarOption}
+                classList={{ [styles.avatarOptionDisabled]: isInteractionDisabled() }}
                 onClick={() => handleOptionClick(option)}
                 style={{
-                    'background-color': isActive() ? '#A9C1FF' : '#d9d9d9'
+                    'background-color': isCompleted()
+                        ? '#D5F3B0'
+                        : isActive()
+                            ? '#A9C1FF'
+                            : '#d9d9d9'
                 }}
             >
                 <span class={styles.avatarOptionText}>{option.name}</span>
@@ -73,6 +82,8 @@ const MakeAvatar = () => {
                 <Chatting 
                     selectedOption={selectedOption()} 
                     allOptions={avatarOptions}
+                    onLoadingChange={(loading) => setIsInteractionDisabled(loading)}
+                    onCompletedOptionsChange={(ids) => setCompletedOptionIds(ids)}
                 />
                 <div class={styles.avatarOptions}>
                     <For each={avatarOptions}>

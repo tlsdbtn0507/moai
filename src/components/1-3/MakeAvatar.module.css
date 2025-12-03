@@ -101,6 +101,11 @@
     transition: background-color 0.2s ease;
 }
 
+.avatarOptionDisabled{
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .avatarOptionText{
     writing-mode: vertical-rl;
     text-orientation: upright;

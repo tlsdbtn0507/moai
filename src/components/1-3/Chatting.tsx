@@ -23,6 +23,8 @@ type ChattingProps = {
     selectedOption: AvatarOption;
     allOptions: AvatarOption[];
     onCharacterGenerated?: (imageUrl: string) => void;
+    onLoadingChange?: (isLoading: boolean) => void;
+    onCompletedOptionsChange?: (completedIds: number[]) => void;
 };
 
 const getInitialMessage = (optionId: number): string => {
@@ -246,6 +248,9 @@ const Chatting = (props: ChattingProps) => {
         scrollToBottom();
 
         setIsLoading(true);
+        if (props.onLoadingChange) {
+            props.onLoadingChange(true);
+        }
 
         try {
             // 필수 항목 검증 (전체 대화 맥락 포함)
@@ -261,6 +266,9 @@ const Chatting = (props: ChattingProps) => {
                 const errorMessage = validationPrompt.replace('ERROR:', '').trim();
                 addMessage(errorMessage, 'ai');
                 setIsLoading(false);
+                if (props.onLoadingChange) {
+                    props.onLoadingChange(false);
+                }
                 if (inputRef) {
                     inputRef.focus();
                 }
@@ -272,7 +280,9 @@ const Chatting = (props: ChattingProps) => {
                 if (!completedOptions().includes(props.selectedOption.id)) {
                     const newCompletedOptions = [...completedOptions(), props.selectedOption.id];
                     setCompletedOptions(newCompletedOptions);
-                    
+                    if (props.onCompletedOptionsChange) {
+                        props.onCompletedOptionsChange(newCompletedOptions);
+                    }
                     // 완료 메시지 생성 (현재 완료된 옵션 목록 포함)
                     const completionMsg = getCompletionMessage(props.selectedOption.id, props.allOptions, completedOptions());
                     addMessage(completionMsg, 'ai');
@@ -282,6 +292,9 @@ const Chatting = (props: ChattingProps) => {
                 }
                 
                 setIsLoading(false);
+                if (props.onLoadingChange) {
+                    props.onLoadingChange(false);
+                }
                 if (inputRef) {
                     inputRef.focus();
                 }
@@ -352,14 +365,16 @@ const Chatting = (props: ChattingProps) => {
             console.log('완료 여부:', isComplete);
             console.log('이미 완료된 옵션:', completedOptions());
 
-            if (isComplete) {
+                if (isComplete) {
                 // 필수 항목이 모두 채워짐
                 // 완료 처리 및 묘사 객체 생성
                 if (!completedOptions().includes(props.selectedOption.id)) {
                     console.log('완료 처리 시작:', props.selectedOption.id);
                     const newCompletedOptions = [...completedOptions(), props.selectedOption.id];
                     setCompletedOptions(newCompletedOptions);
-                    
+                    if (props.onCompletedOptionsChange) {
+                        props.onCompletedOptionsChange(newCompletedOptions);
+                    }
                     // 완료 메시지 생성 (현재 완료된 옵션 목록 포함)
                     const completionMsg = getCompletionMessage(props.selectedOption.id, props.allOptions, completedOptions());
                     addMessage(completionMsg, 'ai');
@@ -378,6 +393,9 @@ const Chatting = (props: ChattingProps) => {
             addMessage('죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.', 'ai');
         } finally {
             setIsLoading(false);
+            if (props.onLoadingChange) {
+                props.onLoadingChange(false);
+            }
             if (inputRef) {
                 inputRef.focus();
             }
@@ -411,6 +429,32 @@ const Chatting = (props: ChattingProps) => {
                         </div>
                     )}
                 </For>
+                <Show when={isLoading()}>
+                    <div class={styles.messageWrapper}>
+                        <div class={styles.aiAvatar}>
+                            <img 
+                                src={getS3ImageURL('1-3/chatMaiFace.png')} 
+                                alt="Mai Avatar" 
+                                class={styles.aiAvatarImg}
+                            />
+                        </div>
+                        <div 
+                            class={styles.messageBubble}
+                            classList={{ 
+                                [styles.aiBubble]: true
+                            }}
+                        >
+                            <div class={styles.typingIndicator}>
+                                <span class={styles.typingText}>답변 중</span>
+                                <span class={styles.typingDots}>
+                                    <span class={styles.typingDot}></span>
+                                    <span class={styles.typingDot}></span>
+                                    <span class={styles.typingDot}></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </Show>
             </div>
             <div class={styles.chatInputContainer}>
                 <input
@@ -420,19 +464,20 @@ const Chatting = (props: ChattingProps) => {
                     value={inputValue()}
                     onInput={(e) => setInputValue(e.currentTarget.value)}
                     onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.isComposing) {
+                        if (e.key === 'Enter' && !e.isComposing && !isLoading()) {
                             e.preventDefault();
                             handleSendMessage();
                         }
                     }}
                     placeholder="메시지를 입력하세요"
+                    disabled={isLoading()}
                 />
                 <button 
                     class={styles.sendButton}
                     onClick={handleSendMessage}
                     disabled={isLoading()}
                 >
-                    {isLoading() ? '처리중...' : '입력'}
+                    입력
                 </button>
             </div>
             
