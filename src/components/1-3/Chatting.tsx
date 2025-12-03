@@ -4,6 +4,7 @@ import { getS3ImageURL } from '../../utils/loading';
 import { callGPT4Mini, getValidationPrompt, getCompletionMessage } from '../../utils/gptChat';
 import { generateImageFromPrompt } from '../../utils/gptImage';
 import { useCharacterImageStore } from '../../store/1/3/characterImageStore';
+import { LoadingModal } from './modal/LoadingModal';
 
 type MessageType = 'ai' | 'user';
 
@@ -54,9 +55,7 @@ const Chatting = (props: ChattingProps) => {
         장신구?: string;
     }>({});
     
-    // 모달 상태
-    const [isModalOpen, setIsModalOpen] = createSignal(false);
-    const [generatedImageUrl, setGeneratedImageUrl] = createSignal<string | null>(null);
+    // 이미지 생성 상태
     const [isGenerating, setIsGenerating] = createSignal(false);
     
     // 모든 옵션이 완료되었는지 확인
@@ -121,11 +120,9 @@ const Chatting = (props: ChattingProps) => {
         }
         
         setIsGenerating(true);
-        setIsModalOpen(true);
         
         try {
             const imageUrl = await generateImageFromPrompt(prompt);
-            setGeneratedImageUrl(imageUrl);
             
             // zustand 스토어에 프롬프트와 이미지 URL 저장 (이미지 생성 성공 후)
             const { setPrompt: setStorePrompt, setGeneratedImageUrl: setStoreImageUrl } = useCharacterImageStore.getState();
@@ -135,8 +132,6 @@ const Chatting = (props: ChattingProps) => {
             // 부모 컴포넌트에 이미지 생성 완료 알림
             if (props.onCharacterGenerated) {
                 props.onCharacterGenerated(imageUrl);
-                // CharacterResult 화면으로 전환되므로 모달 닫기
-                setIsModalOpen(false);
             }
         } catch (error) {
             console.error('이미지 생성 오류:', error);
@@ -495,32 +490,8 @@ const Chatting = (props: ChattingProps) => {
                 </div>
             </Show>
             
-            {/* 모달 */}
-            <Show when={isModalOpen()}>
-                <div class={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
-                    <div class={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                        <button 
-                            class={styles.modalCloseButton}
-                            onClick={() => setIsModalOpen(false)}
-                        >
-                            ×
-                        </button>
-                        <div class={styles.modalBody}>
-                            {isGenerating() ? (
-                                <div class={styles.loadingContainer}>
-                                    <p>캐릭터를 생성하고 있어요...</p>
-                                </div>
-                            ) : generatedImageUrl() ? (
-                                <img 
-                                    src={generatedImageUrl()!} 
-                                    alt="Generated Character" 
-                                    class={styles.generatedImage}
-                                />
-                            ) : null}
-                        </div>
-                    </div>
-                </div>
-            </Show>
+            {/* 로딩 모달 */}
+            <LoadingModal isOpen={isGenerating()} />
         </div>
     );
 };

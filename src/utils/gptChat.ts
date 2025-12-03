@@ -199,3 +199,234 @@ export function getCompletionMessage(
     return `${currentOptionName} 입력이 완료되었어! 이제 ${remainingOptionsText} 클릭해서 입력하자!`;
 }
 
+// 프롬프트 평가 타입
+export type PromptScores = {
+    specificity: number; // 구체성 (1-3)
+    clarity: number; // 명확성 (1-3)
+    contextuality: number; // 맥락성 (1-3)
+    feedback: {
+        specificity: string; // 구체성 피드백
+        clarity: string; // 명확성 피드백
+        contextuality: string; // 맥락성 피드백
+    };
+};
+
+/**
+ * 프롬프트를 평가하여 구체성, 명확성, 맥락성을 점수로 반환
+ * @param sunsetPrompt 노을 풍경 묘사 프롬프트
+ * @param characterPrompt 캐릭터 묘사 프롬프트 (얼굴, 옷, 장신구 포함)
+ * @returns 평가 점수 객체
+ */
+export async function evaluatePrompts(
+    sunsetPrompt: string,
+    characterPrompt: string
+): Promise<PromptScores> {
+    const evaluationPrompt = `다음 두 프롬프트를 평가해주세요.
+
+1. 노을 풍경 묘사:
+"${sunsetPrompt}"
+
+2. 캐릭터 묘사:
+"${characterPrompt}"
+
+각 프롬프트를 다음 세 가지 기준으로 평가해주세요:
+- 구체성 (Specificity): 구체적인 세부사항이 얼마나 포함되어 있는가? (1점: 추상적, 2점: 보통, 3점: 매우 구체적)
+- 명확성 (Clarity): AI가 이해하기 쉬운가? (1점: 모호함, 2점: 보통, 3점: 매우 명확)
+- 맥락성 (Contextuality): 맥락과 상황이 잘 전달되는가? (1점: 맥락 부족, 2점: 보통, 3점: 맥락 풍부)
+
+각 항목에 대해 점수와 함께 친근하고 격려하는 톤의 피드백을 작성해주세요.
+피드백 형식 예시:
+- 구체성이 낮을 때: "캐릭터의 외형·능력·아이템 정보가 부족해요! 어떤 모습인지 더 자세히 말해주면 훨씬 정확해져요."
+- 명확성이 낮을 때: "하고 싶은 말은 잘 전해졌지만, '귀여운/친절한' 같은 표현이 조금 모호해요. 구체적인 단어로 바꾸면 이해도 UP!"
+- 맥락성이 낮을 때: "이 캐릭터가 어디에 쓰이는지가 빠져 있어요. 상황이나 목적을 한 줄 추가하면 캐릭터가 더 선명해져요!"
+점수가 높을 때는 칭찬하는 피드백을 작성해주세요.
+
+응답 형식은 반드시 다음 JSON 형식으로만 답변해주세요:
+{
+  "sunset": {
+    "specificity": 1-3,
+    "clarity": 1-3,
+    "contextuality": 1-3,
+    "feedback": {
+      "specificity": "구체성에 대한 피드백 (친근하고 격려하는 톤)",
+      "clarity": "명확성에 대한 피드백 (친근하고 격려하는 톤)",
+      "contextuality": "맥락성에 대한 피드백 (친근하고 격려하는 톤)"
+    }
+  },
+  "character": {
+    "specificity": 1-3,
+    "clarity": 1-3,
+    "contextuality": 1-3,
+    "feedback": {
+      "specificity": "구체성에 대한 피드백 (친근하고 격려하는 톤)",
+      "clarity": "명확성에 대한 피드백 (친근하고 격려하는 톤)",
+      "contextuality": "맥락성에 대한 피드백 (친근하고 격려하는 톤)"
+    }
+  }
+}
+
+두 프롬프트의 평균 점수를 계산하고, 피드백도 두 프롬프트를 종합하여 작성해주세요.`;
+
+    try {
+        const messages: ChatMessage[] = [
+            {
+                role: 'system',
+                content: '당신은 프롬프트 평가 전문가입니다. 주어진 프롬프트를 객관적이고 정확하게 평가합니다. 반드시 JSON 형식으로만 응답합니다.',
+            },
+            {
+                role: 'user',
+                content: evaluationPrompt,
+            },
+        ];
+
+        const response = await callGPT4Mini(messages);
+        
+        // JSON 파싱 시도
+        let parsedResponse: {
+            sunset?: { 
+                specificity: number; 
+                clarity: number; 
+                contextuality: number;
+                feedback?: {
+                    specificity: string;
+                    clarity: string;
+                    contextuality: string;
+                };
+            };
+            character?: { 
+                specificity: number; 
+                clarity: number; 
+                contextuality: number;
+                feedback?: {
+                    specificity: string;
+                    clarity: string;
+                    contextuality: string;
+                };
+            };
+        };
+        
+        try {
+            // JSON 코드 블록 제거
+            const jsonMatch = response.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                parsedResponse = JSON.parse(jsonMatch[0]);
+            } else {
+                parsedResponse = JSON.parse(response);
+            }
+        } catch (parseError) {
+            console.error('JSON 파싱 실패:', response);
+            // 기본값 반환
+            return { 
+                specificity: 2, 
+                clarity: 2, 
+                contextuality: 2,
+                feedback: {
+                    specificity: '구체적인 세부사항을 더 추가해보면 좋아요!',
+                    clarity: '표현을 더 명확하게 하면 이해도가 올라가요!',
+                    contextuality: '상황이나 맥락을 추가하면 더 완벽해져요!'
+                }
+            };
+        }
+
+        // 두 프롬프트의 평균 계산
+        const sunsetScores = parsedResponse.sunset || { 
+            specificity: 2, 
+            clarity: 2, 
+            contextuality: 2,
+            feedback: {
+                specificity: '구체적인 세부사항을 더 추가해보면 좋아요!',
+                clarity: '표현을 더 명확하게 하면 이해도가 올라가요!',
+                contextuality: '상황이나 맥락을 추가하면 더 완벽해져요!'
+            }
+        };
+        const characterScores = parsedResponse.character || { 
+            specificity: 2, 
+            clarity: 2, 
+            contextuality: 2,
+            feedback: {
+                specificity: '구체적인 세부사항을 더 추가해보면 좋아요!',
+                clarity: '표현을 더 명확하게 하면 이해도가 올라가요!',
+                contextuality: '상황이나 맥락을 추가하면 더 완벽해져요!'
+            }
+        };
+
+        // 평균 점수 계산
+        const avgSpecificity = Math.round((sunsetScores.specificity + characterScores.specificity) / 2);
+        const avgClarity = Math.round((sunsetScores.clarity + characterScores.clarity) / 2);
+        const avgContextuality = Math.round((sunsetScores.contextuality + characterScores.contextuality) / 2);
+
+        // 점수가 1-3 범위를 벗어나면 조정
+        const specificity = Math.max(1, Math.min(3, avgSpecificity));
+        const clarity = Math.max(1, Math.min(3, avgClarity));
+        const contextuality = Math.max(1, Math.min(3, avgContextuality));
+
+        // 피드백 통합 (두 프롬프트의 피드백을 종합)
+        const sunsetFeedback = sunsetScores.feedback || {
+            specificity: '구체적인 세부사항을 더 추가해보면 좋아요!',
+            clarity: '표현을 더 명확하게 하면 이해도가 올라가요!',
+            contextuality: '상황이나 맥락을 추가하면 더 완벽해져요!'
+        };
+        const characterFeedback = characterScores.feedback || {
+            specificity: '구체적인 세부사항을 더 추가해보면 좋아요!',
+            clarity: '표현을 더 명확하게 하면 이해도가 올라가요!',
+            contextuality: '상황이나 맥락을 추가하면 더 완벽해져요!'
+        };
+
+        // 피드백 통합 (점수가 낮은 쪽의 피드백 우선, 둘 다 높으면 칭찬)
+        const getCombinedFeedback = (
+            sunsetScore: number,
+            characterScore: number,
+            sunsetFeedback: string,
+            characterFeedback: string,
+            highScoreMessage: string
+        ): string => {
+            if (sunsetScore >= 3 && characterScore >= 3) {
+                return highScoreMessage;
+            }
+            // 점수가 낮은 쪽의 피드백 우선
+            if (sunsetScore <= characterScore) {
+                return sunsetFeedback || characterFeedback;
+            } else {
+                return characterFeedback || sunsetFeedback;
+            }
+        };
+
+        const combinedFeedback = {
+            specificity: getCombinedFeedback(
+                sunsetScores.specificity,
+                characterScores.specificity,
+                sunsetFeedback.specificity,
+                characterFeedback.specificity,
+                '구체적인 묘사가 잘 되어 있어요!'
+            ),
+            clarity: getCombinedFeedback(
+                sunsetScores.clarity,
+                characterScores.clarity,
+                sunsetFeedback.clarity,
+                characterFeedback.clarity,
+                '명확한 표현이 좋아요!'
+            ),
+            contextuality: getCombinedFeedback(
+                sunsetScores.contextuality,
+                characterScores.contextuality,
+                sunsetFeedback.contextuality,
+                characterFeedback.contextuality,
+                '맥락이 잘 전달되고 있어요!'
+            )
+        };
+
+        const scores: PromptScores = {
+            specificity,
+            clarity,
+            contextuality,
+            feedback: combinedFeedback
+        };
+
+        return scores;
+    } catch (error) {
+        console.error('프롬프트 평가 실패:', error);
+        // 기본값 반환
+        return { specificity: 2, clarity: 2, contextuality: 2 };
+    }
+}
+

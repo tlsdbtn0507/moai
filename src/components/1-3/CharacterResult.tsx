@@ -86,15 +86,11 @@ const CharacterResult = (props: CharacterResultProps) => {
                         맘에 들어
                     </button>
                 </div>
-
-                {/* 오른쪽 하단 MAI 로봇 */}
-                {/* <div class={styles.maiRobotContainer}> */}
                     <img 
                         src={getS3ImageURL('1-3/finishingMai.png')} 
                         alt="MAI Robot" 
                         class={styles.maiRobot}
                     />
-                {/* </div> */}
             </div>
         </div>
     );

@@ -1,4 +1,5 @@
 import { Show, onMount, createSignal, createEffect, onCleanup } from 'solid-js';
+import { useNavigate, useParams } from '@solidjs/router';
 import pageContainerStyles from '../../styles/PageContainer.module.css';
 import styles from './MakingAvatarsWithPrompting.module.css';
 import { SpeechBubble } from '../SpeechBubble';
@@ -14,6 +15,8 @@ import CharacterResult from './CharacterResult';
 import { useCharacterImageStore } from '../../store/1/3/characterImageStore';
 
 const MakingAvatarsWithPrompting = () => {
+  const params = useParams();
+  const navigate = useNavigate();
   const [isReady, setIsReady] = createSignal(false);
   const [currentScriptIndex, setCurrentScriptIndex] = createSignal(-1);
   const [audioContextActivated, setAudioContextActivated] = createSignal(false);
@@ -274,19 +277,6 @@ const MakingAvatarsWithPrompting = () => {
   };
 
   return (
-    // <div
-    //     class={pageContainerStyles.container}
-    //     style={{
-    //       position: 'relative',
-    //       'background-color': '#A9C1FF',
-    //       display: 'flex',
-    //       'align-items': 'center',
-    //       'flex-direction': 'column-reverse',
-    //       padding: '1rem 2rem 1rem',
-    //     }}>
-    //       <CharacterResult characterImageUrl={''} onRetry={() => {}} onConfirm={() => {}} />
-    // </div>
-
     <Show when={isReady()} fallback={<LoadingSpinner />}>
       <div  
         class={pageContainerStyles.container}
@@ -331,8 +321,10 @@ const MakingAvatarsWithPrompting = () => {
               useCharacterImageStore.getState().clearGeneratedImageUrl();
             }} 
             onConfirm={() => {
-              // 다음 단계로 진행하는 로직 추가 가능
-              console.log('캐릭터 확인 완료');
+              // 다음 단계(1/3/5)로 이동
+              const worldId = params.worldId || '1';
+              const classId = params.classId || '3';
+              navigate(`/${worldId}/${classId}/5`);
             }} 
           />
         </Show>

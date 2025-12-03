@@ -13,6 +13,13 @@ export interface MakingAvatarsScriptInterface {
   voice: string;
 }
 
+export interface AiFeedbackReviewScriptInterface {
+  id: number;
+  script: string;
+  voice: string;
+  maiPng: string;
+}
+
 export const importanceOfPromptingScripts: ScriptInterface[] = [
   {
     id: 1,
@@ -170,3 +177,35 @@ export const makingAvatarsScripts: MakingAvatarsScriptInterface[] = [
   }
 ];
 
+export const aiFeedbackReviewScripts: AiFeedbackReviewScriptInterface[] = [
+  {
+    id: 1,
+    script: ' 오늘 너의 말로 AI에게 세상을 학습시켰어',
+    voice: '1-3_Conclusion_1.mp3',
+    maiPng: '1-3/reportingMai.png',
+  },
+  {
+    id: 2,
+    script: '그렇지만 AI가 항상 정확한 건 아니야.\n가끔은 너무 자신 있게 ‘틀린 말’을 하기도 해.',
+    voice: '1-3_Conclusion_2.mp3',
+    maiPng: '1-3/reportingMai.png',
+  },
+  {
+    id: 3,
+    script: '그건 마치, 똑똑한 친구가 엉뚱한 소리하면서도\n너무 진지해서 다들 속아넘어가는 그런 상황이지.',
+    voice: '1-3_Conclusion_3.mp3',
+    maiPng: '1-3/disappointedMai.png',
+  },
+  {
+    id: 4,
+    script: '다음 시간엔 그걸 이야기해볼 거야.\nAI가 어떻게 ‘모르는 걸 아는 척’ 하는지.\n그리고 너는 그걸 어떻게 간파할 수 있는지.',
+    voice: '1-3_Conclusion_4.mp3',
+    maiPng: '1-3/outstretchedMai.png',
+  },
+  {
+    id: 5,
+    script: 'AI를 제대로 쓰고 싶다면, AI를 의심할 줄도 알아야 해.\n그럼… 다음 수업에서 다시 만나자!',
+    voice: '1-3_Conclusion_5.mp3',
+    maiPng: '1-3/scisorMai.png',
+  },
+]
