@@ -62,7 +62,7 @@ export function DescribeModal(props: DescribeModalProps) {
     <Show when={props.isOpen}>
       <div class={styles.overlay} onClick={props.onClose}>
         <div class={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h1 class={styles.modalTitle}>내가 살던 곳의 노을을 그려보자!</h1>
+            <h1 class={styles.modalTitle}>이 그림을 MAI에게 설명해보자!</h1>
           <Show when={isReady()} fallback={<LoadingSpinner />}>
             {imageUrl() && (
               <img 

@@ -67,11 +67,11 @@
 }
 
 .sideBtn {
-  width: 160px;
+  width: 180px;
   height: 70px;
-  background-color: #00A1F3;
-  border: 10px solid #8B4513;
-  border-radius: 24px;
+  background: linear-gradient(180deg, #4FD3FF 0%, #00A1F3 60%, #0083C5 100%);
+  border: 8px solid #8B4513;
+  border-radius: 36px;
   color: white;
   font-size: 1.5rem;
   font-family: var(--font-cookierun);
@@ -92,9 +92,9 @@
 .centerBtn {
   width: 160px;
   height: 70px;
-  background-color: #FDE62B;
-  border: 10px solid #8B4513;
-  border-radius: 24px;
+  background: linear-gradient(180deg, #FFF27A 0%, #FDE62B 60%, #F2CF00 100%);
+  border: 8px solid #8B4513;
+  border-radius: 36px;
   color: white;
   font-size: 1.5rem;
   font-family: var(--font-cookierun);
@@ -129,5 +129,56 @@
   color: #8B4513;
   font-family: var(--font-cookierun);
   margin: 0;
+}
+
+/* 피드백 텍스트 영역 */
+.feedbackContent {
+  height: 500px;
+    width: 700px;
+  margin-top: 1rem;
+  padding: 0 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feedbackSection {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  height: 33%;
+}
+
+.feedbackLabel {
+  background-color: #FBD593;
+  border: 3px solid #8B4513;
+  border-radius: 24px;
+  padding: 0.5rem 1.5rem;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.feedbackLabelText {
+  color: #8B4513;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.feedbackText {
+  flex: 1;
+  color: #5C3A21;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  padding-top: 0.25rem;
+  white-space: pre-line;
+}
+
+.feedbackDivider {
+  height: 2px;
+  background-color: #8B4513;
+  margin: 0.25rem 0 0.75rem;
 }
 

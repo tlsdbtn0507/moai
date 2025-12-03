@@ -1,4 +1,5 @@
 import { Show, onMount, createSignal, createEffect, onCleanup } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
 import { LoadingSpinner } from '../LoadingSpinner';
 import pageContainerStyles from '../../styles/PageContainer.module.css';
 import { getS3ImageURL, preloadImages } from '../../utils/loading';
@@ -23,6 +24,7 @@ const DEV_CHARACTER_PROMPT = {
 };
 
 const AiFeedbackReview = () => {
+  const navigate = useNavigate();
   const [isReady, setIsReady] = createSignal(false);
   const [showScoreBoard, setShowScoreBoard] = createSignal(false);
   const [currentScriptIndex, setCurrentScriptIndex] = createSignal(-1);
@@ -293,8 +295,8 @@ const AiFeedbackReview = () => {
             <ScoreBoard 
               scores={scores()}
               onWorldMap={() => {
-                // 월드맵으로 이동
-                console.log('월드맵으로 이동');
+                // 월드맵으로 이동 (Solid Router)
+                navigate('/worldmap');
               }}
               onSummary={() => {
                 // 학습 요약 페이지로 이동
