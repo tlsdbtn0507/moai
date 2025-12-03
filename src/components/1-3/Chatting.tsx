@@ -127,8 +127,9 @@ const Chatting = (props: ChattingProps) => {
             const imageUrl = await generateImageFromPrompt(prompt);
             setGeneratedImageUrl(imageUrl);
             
-            // zustand 스토어에 이미지 URL 저장
-            const { setGeneratedImageUrl: setStoreImageUrl } = useCharacterImageStore.getState();
+            // zustand 스토어에 프롬프트와 이미지 URL 저장 (이미지 생성 성공 후)
+            const { setPrompt: setStorePrompt, setGeneratedImageUrl: setStoreImageUrl } = useCharacterImageStore.getState();
+            setStorePrompt(prompt);
             setStoreImageUrl(imageUrl);
             
             // 부모 컴포넌트에 이미지 생성 완료 알림

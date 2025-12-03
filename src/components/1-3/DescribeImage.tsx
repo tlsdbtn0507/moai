@@ -43,6 +43,7 @@ const DescribeImage = () => {
 
   const handleDescriptionSubmit = async (description: string) => {
     setUserInput(description);
+    useDescribeImageStore.getState().setUserPrompt(description); // store에 묘사 프롬프트 저장
     setGenerationError(null);
     setGeneratedImageUrl(null);
     setIsGeneratingImage(true);
