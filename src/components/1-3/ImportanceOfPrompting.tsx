@@ -58,12 +58,26 @@ const ImportanceOfPrompting = () => {
     }
   };
 
-  // 마지막 스크립트 이후 다음 단계(1/3/3)로 이동
+  // 마지막 스크립트 이후 다음 단계(1/3/4)로 이동
   const goToNextStep = () => {
     const worldId = params.worldId || '1';
     const classId = params.classId || '3';
     const nextStepId = '4';
     navigate(`/${worldId}/${classId}/${nextStepId}`);
+  };
+
+  // 다시듣기: 첫 번째 스크립트로 돌아가기
+  const restartFromBeginning = () => {
+    cancelAutoProceed(); // 타이머 취소
+    audioPlayback.stopAudio(); // 오디오 정지
+    typingAnimation.resetSkipState(); // 스킵 상태 초기화
+    setWasSkipped(false); // 스킵 상태 초기화
+    setCurrentScriptIndex(0); // 첫 번째 스크립트로 리셋
+  };
+
+  // 마지막 스크립트인지 확인
+  const isLastScript = () => {
+    return currentScriptIndex() >= importanceOfPromptingScripts.length - 1;
   };
 
   // 다음 스크립트로 진행
@@ -108,9 +122,9 @@ const ImportanceOfPrompting = () => {
     onSecondSkip: () => {
       cancelAutoProceed(); // 자동 진행 타이머 취소
       audioPlayback.stopAudio();
-      // 마지막 스크립트라면 바로 다음 단계로 이동
+      // 마지막 스크립트라면 자동으로 다음 단계로 이동하지 않음 (다시듣기 버튼 표시)
       if (currentScriptIndex() >= importanceOfPromptingScripts.length - 1) {
-        goToNextStep();
+        // 마지막 스크립트에서는 자동 진행하지 않음
       } else {
         proceedToNext();
       }
@@ -151,8 +165,9 @@ const ImportanceOfPrompting = () => {
               proceedToNext();
             }
           } else {
-            // 마지막 스크립트의 음성이 끝나면 다음 단계로 이동
-            goToNextStep();
+            // 마지막 스크립트의 음성이 끝나면 자동으로 다음 단계로 이동하지 않고
+            // '다시듣기' 버튼이 표시되도록 함 (버튼 클릭 시 다음 단계로 이동 가능)
+            // 자동 진행 없음 - 사용자가 '다시듣기' 또는 다음 단계로 이동 선택 가능
           }
         },
       });
@@ -324,6 +339,24 @@ const ImportanceOfPrompting = () => {
               />
             </div>
           </div>
+          <Show when={isLastScript() && (typingAnimation.displayedMessage().length === currentScript()?.script.length || wasSkipped())}>
+            <div class={styles.restartButtonContainer}>
+              <button
+                class={styles.restartButton}
+                onClick={restartFromBeginning}
+              >
+                다시듣기
+              </button>
+            </div>
+            <div class={styles.nextButtonContainer}>
+              <button
+                class={styles.nextButton}
+                onClick={goToNextStep}
+              >
+                넘어가기
+              </button>
+            </div>
+          </Show>
         </div>
       </div>
     </Show>

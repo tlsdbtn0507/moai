@@ -1,4 +1,4 @@
-import { Show, createEffect, createSignal, onCleanup, createMemo } from 'solid-js';
+import { Show, createEffect, createSignal, createMemo } from 'solid-js';
 import { useNavigate, useParams } from '@solidjs/router';
 import styles from './CompareModal.module.css';
 import { SpeechBubble } from '../../SpeechBubble';
@@ -14,6 +14,7 @@ type CompareModalProps = {
   isOpen: boolean;
   onClose?: () => void;
   generatedImageUrl: string;
+  onReset?: () => void;
 };
 
 const fullMessage = `너의 설명을 듣고 이렇게 그려봤어!
@@ -154,8 +155,9 @@ export function CompareModal(props: CompareModalProps) {
                 e.preventDefault();
                 const value = description().trim();
                 if (!value) return;
-                // 여기에 제출 처리 로직 추가 가능
-                console.log('비교 설명:', value);
+                // 다음 단계로 이동: /1/3/1 -> /1/3/2
+                const nextStepId = String(parseInt(params.stepId || '1', 10) + 1);
+                navigate(`/${params.worldId}/${params.classId}/${nextStepId}`);
               }}>
                 <input
                   type="text"
@@ -174,15 +176,16 @@ export function CompareModal(props: CompareModalProps) {
               <div class={styles.nextButtonContainer}>
                 <button
                   class={styles.nextButton}
-                  disabled={!description().trim()}
                   onClick={() => {
-                    if (!description().trim()) return;
-                    // 다음 단계로 이동: /1/3/1 -> /1/3/2
-                    const nextStepId = String(parseInt(params.stepId || '1', 10) + 1);
-                    navigate(`/${params.worldId}/${params.classId}/${nextStepId}`);
+                    // zustand 스토어에서 프롬프트만 리셋 (selectedImage는 유지)
+                    useDescribeImageStore.getState().resetPrompt();
+                    // DescribeModal로 돌아가기 위해 onReset 콜백 호출
+                    if (props.onReset) {
+                      props.onReset();
+                    }
                   }}
                 >
-                  다음으로
+                  다시하기
                 </button>
               </div>
             </div>

@@ -25,6 +25,7 @@ interface DescribeImageState {
   setCurrentScriptStep: (step: number) => void;
   completeScriptStep: (index: number) => void;
   reset: () => void;
+  resetPrompt: () => void;
 }
 
 const initialState = {
@@ -51,5 +52,7 @@ export const useDescribeImageStore = create<DescribeImageState>((set) => ({
     })),
   
   reset: () => set(initialState),
+  
+  resetPrompt: () => set((state) => ({ userPrompt: '' })),
 }));
 

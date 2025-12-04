@@ -30,6 +30,23 @@
   width: 200px;
   height: auto;
   object-fit: contain;
+  animation: drawingAnimation 3s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes drawingAnimation {
+  0%, 100% {
+    transform: translateX(0) translateY(0) rotate(-5deg);
+  }
+  25% {
+    transform: translateX(15px) translateY(-8px) rotate(5deg);
+  }
+  50% {
+    transform: translateX(0) translateY(0) rotate(-5deg);
+  }
+  75% {
+    transform: translateX(-15px) translateY(-8px) rotate(5deg);
+  }
 }
 
 .loadingText {

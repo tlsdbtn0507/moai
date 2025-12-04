@@ -26,6 +26,8 @@ type ChattingProps = {
     onCharacterGenerated?: (imageUrl: string) => void;
     onLoadingChange?: (isLoading: boolean) => void;
     onCompletedOptionsChange?: (completedIds: number[]) => void;
+    onError?: (error: Error) => void;
+    restartTrigger?: number;
 };
 
 const getInitialMessage = (optionId: number): string => {
@@ -68,6 +70,37 @@ const Chatting = (props: ChattingProps) => {
     
     let inputRef: HTMLInputElement | undefined;
     let messagesContainerRef: HTMLDivElement | undefined;
+    
+    // 이전 restartTrigger 값을 추적
+    let previousRestartTrigger = props.restartTrigger || 0;
+    
+    // 재시작 트리거가 변경되면 모든 상태 초기화 (값이 실제로 증가했을 때만)
+    createEffect(() => {
+        const trigger = props.restartTrigger;
+        // restartTrigger가 실제로 증가했을 때만 초기화
+        if (trigger !== undefined && trigger > previousRestartTrigger) {
+            previousRestartTrigger = trigger; // 이전 값 업데이트
+            
+            // 모든 상태 초기화
+            setMessages([]);
+            setInputValue('');
+            setLastOptionId(null);
+            setIsLoading(false);
+            setCompletedOptions([]);
+            setDescriptions({});
+            setIsGenerating(false);
+            conversationCache.clear();
+            
+            // 초기 메시지 설정
+            const initialMessage = getInitialMessage(props.selectedOption.id);
+            setMessages([{
+                id: 1,
+                type: 'ai',
+                text: initialMessage
+            }]);
+            setLastOptionId(props.selectedOption.id);
+        }
+    });
 
     // 스크롤을 맨 아래로 이동
     const scrollToBottom = () => {
@@ -135,7 +168,37 @@ const Chatting = (props: ChattingProps) => {
             }
         } catch (error) {
             console.error('이미지 생성 오류:', error);
-            alert('이미지 생성에 실패했습니다. 다시 시도해주세요.');
+            
+            // 상세한 오류 정보 로깅
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+            const errorDetails = error instanceof Error ? {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            } : { message: String(error) };
+            
+            console.error('이미지 생성 오류 상세:', errorDetails);
+            
+            // 에러 객체 생성
+            const errorObj = error instanceof Error ? error : new Error(String(error));
+            
+            // onError 콜백을 변수에 저장하여 타입 체크 문제 해결
+            const onErrorCallback = props.onError;
+            
+            // 사용자에게 오류 알림 표시 (onError 콜백 여부와 관계없이 항상 표시)
+            alert(`이미지 생성에 실패했습니다.\n다시 시도해주세요.`);
+            
+            // 부모 컴포넌트에 오류 알림 (비동기로 실행하여 상태 변경 전에 완료되도록)
+            if (onErrorCallback) {
+                // 다음 이벤트 루프에서 실행하여 현재 catch 블록이 완전히 실행되도록 함
+                setTimeout(() => {
+                    try {
+                        onErrorCallback(errorObj);
+                    } catch (callbackError) {
+                        console.error('onError 콜백 실행 중 오류:', callbackError);
+                    }
+                }, 0);
+            }
         } finally {
             setIsGenerating(false);
         }
@@ -175,12 +238,12 @@ const Chatting = (props: ChattingProps) => {
                         text: initialMessage
                     }]);
                 } else {
-                    // 이미 완료된 경우 완료 메시지만 표시
+                    // 이미 완료된 경우 완료 메시지와 추가 입력 안내 표시
                     const completionMsg = getCompletionMessage(currentOptionId, props.allOptions, completedOptions());
                     setMessages([{
                         id: 1,
                         type: 'ai',
-                        text: completionMsg
+                        text: `${completionMsg}\n\n추가로 수정하고 싶은 내용이 있으면 말해줘!`
                     }]);
                 }
             }
@@ -217,12 +280,172 @@ const Chatting = (props: ChattingProps) => {
         // 입력 필드 초기화
         setInputValue('');
         
-        // 이미 완료된 옵션이면 검증 건너뛰기
+        // 이미 완료된 옵션이어도 추가 입력을 받아 검증 후 기존 입력을 대체
         if (completedOptions().includes(props.selectedOption.id)) {
-            addMessage(text, 'user');
-            if (inputRef) {
-                inputRef.focus();
+            // 유저 메시지 추가 (추가 입력만)
+            const currentMessages = messages();
+            const maxId = currentMessages.length > 0 
+                ? Math.max(...currentMessages.map(m => m.id))
+                : 0;
+            
+            const newUserMessage: Message = {
+                id: maxId + 1,
+                type: 'user',
+                text: text
+            };
+            
+            const updatedMessages = [...currentMessages, newUserMessage];
+            setMessages(updatedMessages);
+            scrollToBottom();
+
+            setIsLoading(true);
+            if (props.onLoadingChange) {
+                props.onLoadingChange(true);
             }
+
+            // 추가 입력만으로 검증 수행
+            (async () => {
+                try {
+                    // 추가 입력만 검증 (기존 입력은 무시)
+                    const validationPrompt = getValidationPrompt(props.selectedOption.id, text);
+                    
+                    // ERROR 응답 처리
+                    if (validationPrompt.startsWith('ERROR:')) {
+                        const errorMessage = validationPrompt.replace('ERROR:', '').trim();
+                        addMessage(errorMessage, 'ai');
+                        setIsLoading(false);
+                        if (props.onLoadingChange) {
+                            props.onLoadingChange(false);
+                        }
+                        if (inputRef) {
+                            inputRef.focus();
+                        }
+                        return;
+                    }
+                    
+                    if (validationPrompt === 'COMPLETE') {
+                        // 검증 완료: 기존 입력을 신규 입력으로 대체
+                        // 대화 히스토리를 새로운 입력만으로 재구성
+                        const initialMessage = getInitialMessage(props.selectedOption.id);
+                        const newMessages: Message[] = [
+                            {
+                                id: 1,
+                                type: 'ai',
+                                text: initialMessage
+                            },
+                            {
+                                id: 2,
+                                type: 'user',
+                                text: text
+                            }
+                        ];
+                        
+                        setMessages(newMessages);
+                        conversationCache.set(props.selectedOption.id, newMessages);
+                        
+                        // 완료 메시지 추가
+                        const completionMsg = getCompletionMessage(props.selectedOption.id, props.allOptions, completedOptions());
+                        addMessage(completionMsg, 'ai');
+                        
+                        // 묘사 객체 업데이트 (새로운 입력만 사용)
+                        createAndLogDescription(props.selectedOption.id, newMessages);
+                        
+                        setIsLoading(false);
+                        if (props.onLoadingChange) {
+                            props.onLoadingChange(false);
+                        }
+                        if (inputRef) {
+                            inputRef.focus();
+                        }
+                        return;
+                    }
+
+                    // GPT API를 통한 검증
+                    const optionNames = {
+                        1: '얼굴',
+                        2: '옷',
+                        3: '장신구'
+                    };
+                    const currentOptionName = optionNames[props.selectedOption.id as keyof typeof optionNames];
+                    
+                    let systemContent = `한국어로 답변하는 친근한 AI입니다. "${currentOptionName}" 설명을 검증 중입니다. 해당 옵션의 필수 항목만 검증하고, 다른 옵션 항목은 검증하지 마세요. 추가 입력만 검증하세요. 누락된 항목이 있을 때는 항목명과 함께 구체적인 예시를 반드시 포함해서 질문하세요.`;
+                    
+                    if (props.selectedOption.id === 1) {
+                        systemContent += ` "노란 얼굴 빛" 등 유사 표현도 피부색으로 인식하세요.`;
+                    }
+                    
+                    if (props.selectedOption.id === 2) {
+                        systemContent += ` "레더 재킷", "브이넥 티셔츠" 등은 명백히 상의 종류가 있는 것입니다. 글의 의미를 정확히 파악하세요.`;
+                    }
+                    
+                    if (props.selectedOption.id === 3) {
+                        systemContent += ` "평범한", "심플한" 등의 표현도 특징으로 인식하세요.`;
+                    }
+                    
+                    const chatHistory = [
+                        {
+                            role: 'system' as const,
+                            content: systemContent
+                        },
+                        {
+                            role: 'user' as const,
+                            content: validationPrompt
+                        }
+                    ];
+
+                    const gptResponse = await callGPT4Mini(chatHistory);
+                    const normalizedResponse = gptResponse.trim().toUpperCase();
+                    
+                    const completionKeywords = ['COMPLETE', '완료', '넘어가자', '넘어가', '다음으로'];
+                    const isComplete = normalizedResponse === 'COMPLETE' || 
+                                     normalizedResponse.startsWith('COMPLETE') ||
+                                     completionKeywords.some(keyword => normalizedResponse.includes(keyword.toUpperCase())) ||
+                                     gptResponse.includes('완료') ||
+                                     gptResponse.includes('넘어가자');
+
+                    if (isComplete) {
+                        // 검증 완료: 기존 입력을 신규 입력으로 대체
+                        const initialMessage = getInitialMessage(props.selectedOption.id);
+                        const newMessages: Message[] = [
+                            {
+                                id: 1,
+                                type: 'ai',
+                                text: initialMessage
+                            },
+                            {
+                                id: 2,
+                                type: 'user',
+                                text: text
+                            }
+                        ];
+                        
+                        setMessages(newMessages);
+                        conversationCache.set(props.selectedOption.id, newMessages);
+                        
+                        // 완료 메시지 추가
+                        const completionMsg = getCompletionMessage(props.selectedOption.id, props.allOptions, completedOptions());
+                        addMessage(completionMsg, 'ai');
+                        
+                        // 묘사 객체 업데이트 (새로운 입력만 사용)
+                        createAndLogDescription(props.selectedOption.id, newMessages);
+                    } else {
+                        // 필수 항목이 누락됨
+                        addMessage(gptResponse, 'ai');
+                    }
+                } catch (error) {
+                    console.error('GPT API 오류:', error);
+                    addMessage('죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.', 'ai');
+                } finally {
+                    setIsLoading(false);
+                    if (props.onLoadingChange) {
+                        props.onLoadingChange(false);
+                    }
+                    if (inputRef) {
+                        inputRef.focus();
+                    }
+                }
+            })();
+            
             return;
         }
 

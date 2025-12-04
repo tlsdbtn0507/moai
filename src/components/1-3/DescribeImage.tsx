@@ -61,6 +61,17 @@ const DescribeImage = () => {
     }
   };
 
+  const handleReset = () => {
+    // CompareModal 닫기
+    setIsCompareModalOpen(false);
+    // 생성된 이미지 URL 리셋
+    setGeneratedImageUrl(null);
+    setGenerationError(null);
+    setUserInput('');
+    // DescribeModal 열기
+    setIsModalOpen(true);
+  };
+
   onMount(async () => {
     // 이미지 프리로드
     try {
@@ -245,6 +256,7 @@ const DescribeImage = () => {
           isOpen={isCompareModalOpen()}
           onClose={() => setIsCompareModalOpen(false)}
           generatedImageUrl={generatedImageUrl()!}
+          onReset={handleReset}
         />
       )}
       </div>

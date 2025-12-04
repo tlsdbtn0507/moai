@@ -1,4 +1,4 @@
-import { For, createSignal } from 'solid-js';
+import { For, createSignal, createEffect } from 'solid-js';
 import styles from './MakeAvatar.module.css';
 import { getS3ImageURL } from '../../utils/loading';
 import Chatting from './Chatting';
@@ -22,10 +22,25 @@ const avatarOptions = [
     },
 ];
 
-const MakeAvatar = () => {
+type MakeAvatarProps = {
+    onError?: (error: Error) => void;
+    onRestart?: () => void;
+    restartTrigger?: number; // 재시작 트리거 (변경될 때마다 재시작)
+};
+
+const MakeAvatar = (props: MakeAvatarProps = {}) => {
     const [selectedOption, setSelectedOption] = createSignal<typeof avatarOptions[0]>(avatarOptions[0]);
     const [isInteractionDisabled, setIsInteractionDisabled] = createSignal(false);
     const [completedOptionIds, setCompletedOptionIds] = createSignal<number[]>([]);
+    
+    // 재시작 트리거가 변경되면 완료된 옵션들을 초기화
+    createEffect(() => {
+        const trigger = props.restartTrigger;
+        if (trigger !== undefined && trigger > 0) {
+            setCompletedOptionIds([]);
+            setSelectedOption(avatarOptions[0]);
+        }
+    });
 
     const handleOptionClick = (option: typeof avatarOptions[0]) => {
         if (isInteractionDisabled()) return;
@@ -84,6 +99,8 @@ const MakeAvatar = () => {
                     allOptions={avatarOptions}
                     onLoadingChange={(loading) => setIsInteractionDisabled(loading)}
                     onCompletedOptionsChange={(ids) => setCompletedOptionIds(ids)}
+                    onError={props.onError}
+                    restartTrigger={props.restartTrigger}
                 />
                 <div class={styles.avatarOptions}>
                     <For each={avatarOptions}>

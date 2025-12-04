@@ -22,6 +22,7 @@ const MakingAvatarsWithPrompting = () => {
   const [audioContextActivated, setAudioContextActivated] = createSignal(false);
   const [wasSkipped, setWasSkipped] = createSignal(false);
   const [audioFinishedForId3, setAudioFinishedForId3] = createSignal(false);
+  const [restartTrigger, setRestartTrigger] = createSignal(0); // 재시작 트리거
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
   
   const typingAnimation = useTypingAnimation({ typingSpeed: 150 });
@@ -312,13 +313,32 @@ const MakingAvatarsWithPrompting = () => {
           </div>
         </Show>
         <Show when={currentScript()?.id === 4 && !generatedImageUrl()}>
-          <MakeAvatar />
+          <MakeAvatar 
+            onError={(error) => {
+              console.error('캐릭터 생성 오류 (MakingAvatarsWithPrompting):', error);
+              console.error('오류 상세:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+              });
+              
+              // 재시작: 완료된 옵션들을 초기화하고 이미지 URL 클리어
+              // 상태 변경을 약간 지연시켜 onError 콜백이 완전히 실행되도록 함
+              setTimeout(() => {
+                useCharacterImageStore.getState().clearGeneratedImageUrl();
+                setRestartTrigger(prev => prev + 1); // 재시작 트리거 증가
+              }, 100);
+            }}
+            restartTrigger={restartTrigger()}
+          />
         </Show>
         <Show when={generatedImageUrl()}>
           <CharacterResult 
             characterImageUrl={generatedImageUrl() || ''} 
             onRetry={() => {
               useCharacterImageStore.getState().clearGeneratedImageUrl();
+              // 재시작: 완료된 옵션들을 초기화
+              setRestartTrigger(prev => prev + 1); // 재시작 트리거 증가
             }} 
             onConfirm={() => {
               // 다음 단계(1/3/5)로 이동
