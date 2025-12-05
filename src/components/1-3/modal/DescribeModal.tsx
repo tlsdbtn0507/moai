@@ -40,7 +40,6 @@ export function DescribeModal(props: DescribeModalProps) {
         await preloadImages([url]);
         setIsReady(true);
       } catch (error) {
-        console.error('이미지 로딩 실패:', error);
         setIsReady(true); // 에러가 발생해도 화면은 표시
       }
     } else {

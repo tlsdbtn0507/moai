@@ -67,9 +67,6 @@ const AiFeedbackReview = () => {
       setTimeout(() => {
         setCurrentScriptIndex(nextIndex);
       }, 10);
-    } else {
-      // 마지막 단계 완료
-      console.log('모든 스크립트 완료');
     }
   };
 
@@ -172,19 +169,14 @@ const AiFeedbackReview = () => {
 
       // 프롬프트가 비어있으면 기본값 사용
       if (!sunsetPrompt || !characterPrompt) {
-        console.warn('프롬프트가 비어있어 기본값 사용');
         sunsetPrompt = sunsetPrompt || DEV_SUNSET_PROMPT;
         const charDesc = DEV_CHARACTER_PROMPT;
         characterPrompt = characterPrompt || `캐릭터 디자인: 얼굴: ${charDesc.얼굴}. 옷: ${charDesc.옷}.`;
       }
 
-      console.log('평가 중인 프롬프트:', { sunsetPrompt, characterPrompt });
       const evaluatedScores = await evaluatePrompts(sunsetPrompt, characterPrompt);
       setScores(evaluatedScores);
-      console.log('평가 결과:', evaluatedScores);
-      console.log('피드백:', evaluatedScores.feedback);
     } catch (error) {
-      console.error('프롬프트 평가 실패:', error);
       // 기본 점수 및 피드백 설정
       setScores({ 
         specificity: 2, 
@@ -207,7 +199,6 @@ const AiFeedbackReview = () => {
       await preloadImages([backgroundImageStyle]);
       setIsReady(true);
     } catch (error) {
-      console.error('이미지 로딩 실패:', error);
       setIsReady(true);
     }
 
@@ -300,11 +291,9 @@ const AiFeedbackReview = () => {
               }}
               onSummary={() => {
                 // 학습 요약 페이지로 이동
-                console.log('학습 요약');
               }}
               onNextLesson={() => {
                 // 다음 학습으로 이동
-                console.log('다음 학습하기');
               }}
             />
           </Show>

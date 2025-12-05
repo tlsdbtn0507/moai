@@ -137,7 +137,6 @@ export async function setBodyBackgroundFromImage(imageUrl: string): Promise<void
     document.body.style.background = gradient;
     document.body.style.backgroundColor = rgbToCss(dominantColor);
   } catch (error) {
-    console.warn('Failed to extract color from image:', error);
     // 실패 시 기본 색상 유지
   }
 }

@@ -30,7 +30,6 @@ export async function generateImageFromPrompt(prompt: string): Promise<string> {
   }
 
   const data = (await response.json()) as GenerateImageResponse;
-  console.log('API 응답 data:', data);
   const imageData = data.data?.[0];
   
   if (!imageData) {

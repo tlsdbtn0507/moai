@@ -314,7 +314,6 @@ export async function evaluatePrompts(
                 parsedResponse = JSON.parse(response);
             }
         } catch (parseError) {
-            console.error('JSON 파싱 실패:', response);
             // 기본값 반환
             return { 
                 specificity: 2, 
@@ -424,7 +423,6 @@ export async function evaluatePrompts(
 
         return scores;
     } catch (error) {
-        console.error('프롬프트 평가 실패:', error);
         // 기본값 반환
         return { specificity: 2, clarity: 2, contextuality: 2 };
     }

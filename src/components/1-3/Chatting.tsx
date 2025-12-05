@@ -133,8 +133,6 @@ const Chatting = (props: ChattingProps) => {
         };
         setDescriptions(newDescriptions);
         
-        // 콘솔에 출력
-        console.log('캐릭터 묘사 객체:', newDescriptions);
     };
     
     // 캐릭터 이미지 생성
@@ -167,17 +165,6 @@ const Chatting = (props: ChattingProps) => {
                 props.onCharacterGenerated(imageUrl);
             }
         } catch (error) {
-            console.error('이미지 생성 오류:', error);
-            
-            // 상세한 오류 정보 로깅
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
-            const errorDetails = error instanceof Error ? {
-                name: error.name,
-                message: error.message,
-                stack: error.stack
-            } : { message: String(error) };
-            
-            console.error('이미지 생성 오류 상세:', errorDetails);
             
             // 에러 객체 생성
             const errorObj = error instanceof Error ? error : new Error(String(error));
@@ -195,7 +182,7 @@ const Chatting = (props: ChattingProps) => {
                     try {
                         onErrorCallback(errorObj);
                     } catch (callbackError) {
-                        console.error('onError 콜백 실행 중 오류:', callbackError);
+                        // 에러 처리 중 에러는 무시
                     }
                 }, 0);
             }
@@ -433,7 +420,6 @@ const Chatting = (props: ChattingProps) => {
                         addMessage(gptResponse, 'ai');
                     }
                 } catch (error) {
-                    console.error('GPT API 오류:', error);
                     addMessage('죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.', 'ai');
                 } finally {
                     setIsLoading(false);
@@ -569,10 +555,6 @@ const Chatting = (props: ChattingProps) => {
             const gptResponse = await callGPT4Mini(chatHistory);
             const normalizedResponse = gptResponse.trim().toUpperCase();
             
-            // 디버깅: GPT 응답 로그
-            console.log('GPT 응답:', gptResponse);
-            console.log('정규화된 응답:', normalizedResponse);
-            
             // 완료를 의미하는 키워드들
             const completionKeywords = ['COMPLETE', '완료', '넘어가자', '넘어가', '다음으로'];
             const isComplete = normalizedResponse === 'COMPLETE' || 
@@ -580,15 +562,11 @@ const Chatting = (props: ChattingProps) => {
                              completionKeywords.some(keyword => normalizedResponse.includes(keyword.toUpperCase())) ||
                              gptResponse.includes('완료') ||
                              gptResponse.includes('넘어가자');
-            
-            console.log('완료 여부:', isComplete);
-            console.log('이미 완료된 옵션:', completedOptions());
 
                 if (isComplete) {
                 // 필수 항목이 모두 채워짐
                 // 완료 처리 및 묘사 객체 생성
                 if (!completedOptions().includes(props.selectedOption.id)) {
-                    console.log('완료 처리 시작:', props.selectedOption.id);
                     const newCompletedOptions = [...completedOptions(), props.selectedOption.id];
                     setCompletedOptions(newCompletedOptions);
                     if (props.onCompletedOptionsChange) {
@@ -600,15 +578,12 @@ const Chatting = (props: ChattingProps) => {
                     
                     // 묘사 객체 생성 및 콘솔 출력
                     createAndLogDescription(props.selectedOption.id, updatedMessages);
-                } else {
-                    console.log('이미 완료된 옵션:', props.selectedOption.id);
                 }
             } else {
                 // 필수 항목이 누락됨
                 addMessage(gptResponse, 'ai');
             }
         } catch (error) {
-            console.error('GPT API 오류:', error);
             addMessage('죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.', 'ai');
         } finally {
             setIsLoading(false);

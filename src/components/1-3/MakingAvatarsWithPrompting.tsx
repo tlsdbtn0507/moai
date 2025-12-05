@@ -315,12 +315,6 @@ const MakingAvatarsWithPrompting = () => {
         <Show when={currentScript()?.id === 4 && !generatedImageUrl()}>
           <MakeAvatar 
             onError={(error) => {
-              console.error('캐릭터 생성 오류 (MakingAvatarsWithPrompting):', error);
-              console.error('오류 상세:', {
-                name: error.name,
-                message: error.message,
-                stack: error.stack
-              });
               
               // 재시작: 완료된 옵션들을 초기화하고 이미지 URL 클리어
               // 상태 변경을 약간 지연시켜 onError 콜백이 완전히 실행되도록 함

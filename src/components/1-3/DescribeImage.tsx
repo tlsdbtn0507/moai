@@ -53,7 +53,6 @@ const DescribeImage = () => {
       setGeneratedImageUrl(url);
       setIsCompareModalOpen(true);
     } catch (error) {
-      console.error('이미지 생성 실패', error);
       setGenerationError(error instanceof Error ? error.message : '이미지 생성에 실패했습니다.');
       setIsModalOpen(true);
     } finally {
@@ -78,7 +77,6 @@ const DescribeImage = () => {
       await preloadImages([backgroundImageStyle]);
       setIsReady(true);
     } catch (error) {
-      console.error('이미지 로딩 실패:', error);
       setIsReady(true); // 에러가 발생해도 화면은 표시
     }
 
@@ -95,7 +93,6 @@ const DescribeImage = () => {
     const proceedToNext = () => {
       audioIndex++;
       if (audioIndex < audioFiles.length) {
-        console.log(`🚀 다음 단계 시작: ${audioIndex + 1}`);
         // 클릭 이벤트 제거 (중복 방지)
         document.removeEventListener('click', handleClick);
         document.removeEventListener('touchstart', handleClick);
@@ -126,7 +123,6 @@ const DescribeImage = () => {
 
     // 선택지 선택 핸들러
     const handleSelect = (value: 'mt' | 'sea' | 'city') => {
-      console.log('선택된 값:', value);
       setShowSelectSunset(false);
       setSelectedValue(value); // 로컬 state 저장
       useDescribeImageStore.getState().setSelectedImage(value); // store에 저장
@@ -141,7 +137,6 @@ const DescribeImage = () => {
       audioPlayback.playAudio(audioFiles[1], {
         onEnded: () => {
         // 두 번째 오디오 재생 완료 시 버튼 표시
-        console.log('두 번째 오디오 재생 완료');
         setShowConfirmButton(true);
         },
       });
@@ -179,9 +174,7 @@ const DescribeImage = () => {
     });
 
     // 첫 번째 오디오와 대사 자동 재생 (1초 후)
-    console.log('⏳ 1초 후 첫 번째 대사 애니메이션과 TTS 시작...');
     setTimeout(() => {
-      console.log('🚀 첫 번째 대사 애니메이션과 TTS 시작!');
       // 첫 번째 오디오 재생 시작 (끝나면 선택지 표시)
       audioPlayback.playAudio(audioFiles[0], {
         onEnded: () => {

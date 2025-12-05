@@ -237,7 +237,6 @@ const IntroductionToAiAssistant = () => {
       await preloadImages(imageUrls);
       setIsReady(true);
     } catch (error) {
-      console.error('이미지 로딩 실패:', error);
       setIsReady(true);
     }
 
