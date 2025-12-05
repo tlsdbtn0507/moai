@@ -8,6 +8,11 @@ import CompareImage from '../components/1-3/CompareImage';
 import ImportanceOfPrompting from '../components/1-3/ImportanceOfPrompting';
 import MakingAvatarsWithPrompting from '../components/1-3/MakingAvatarsWithPrompting';
 import AiFeedbackReview from '../components/1-3/AiFeedbackReview';
+import IntroductionToAiAssistant from '../components/4-2/IntroductionToAiAssistant';
+import CompareAiAssistants from '../components/4-2/CompareAiAssistants';
+import LearningAiAssistant from '../components/4-2/LearningAiAssistant';
+import MakingOwnAiAssistant from '../components/4-2/MakingOwnAiAssistant';
+import FinishingUpq from '../components/4-2/FinishingUpq';
 
 const componentRegistry = {
   DescribeImage,
@@ -15,6 +20,11 @@ const componentRegistry = {
   ImportanceOfPrompting,
   MakingAvatarsWithPrompting,
   AiFeedbackReview,
+  IntroductionToAiAssistant,
+  CompareAiAssistants,
+  LearningAiAssistant,
+  MakingOwnAiAssistant,
+  FinishingUpq,
 };
 
 type CurriculumWorld = {
@@ -26,7 +36,7 @@ type CurriculumWorld = {
     steps?: Array<{
       id: string;
       type: string;
-      component: keyof typeof componentRegistry;
+      page: keyof typeof componentRegistry;
       title: string;
     }>;
   }>;
@@ -42,7 +52,7 @@ export function Step() {
   });
 
   const StepComponent = createMemo(() => {
-    const componentName = matchedStep()?.component;
+    const componentName = matchedStep()?.page;
     return componentName ? componentRegistry[componentName] : undefined;
   });
 

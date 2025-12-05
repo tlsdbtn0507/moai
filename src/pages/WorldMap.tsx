@@ -1,4 +1,4 @@
-import { A, useParams } from '@solidjs/router';
+import { A, useParams, useNavigate } from '@solidjs/router';
 import { createSignal, onMount, Show, type JSX } from 'solid-js';
 import { WORLD_DETAILS, type WorldDetail } from '../constants/worldDetails';
 import { getS3ImageURL, preloadImages } from '../utils/loading';
@@ -33,6 +33,7 @@ const shadeColor = (hex: string, percent: number) => {
 
 export function WorldMap() {
   const params = useParams();
+  const navigate = useNavigate();
   const [selectedWorldMap, setSelectedWorldMap] = createSignal(1);
   const [warningWorld, setWarningWorld] = createSignal<WorldDetail | null>(null);
   const [isReady, setIsReady] = createSignal(false);
@@ -42,6 +43,13 @@ export function WorldMap() {
   const lockImage = getS3ImageURL('lock.png');
   const warningImage = getS3ImageURL('warning.png');
   const closeWarningModal = () => setWarningWorld(null);
+  
+  const handleAdvanceStudy = () => {
+    const world = warningWorld();
+    if (world) {
+      navigate(`/${world.id}`);
+    }
+  };
 
   // URL 파라미터에서 월드맵 ID 읽기
   onMount(async () => {
@@ -84,7 +92,7 @@ export function WorldMap() {
      <div class={styles.worldsWrapper}>
         {WORLD_DETAILS.map((world) => {
           const lightFill = shadeColor(world.color.main, 30);
-          const isLocked = world.id > selectedWorldMap();
+          const isLocked = world.id !== 1;
           const cardStyleVars = {
             '--world-main': `#${world.color.main}`,
             '--world-border': `#${world.color.border}`,
@@ -160,7 +168,10 @@ export function WorldMap() {
               있습니다. 정말 예습을 하실건가요?
             </p>
             <div class={styles.modalButtons}>
-              <button class={`${styles.modalButton} ${styles.modalButtonPrimary}`}>
+              <button 
+                class={`${styles.modalButton} ${styles.modalButtonPrimary}`}
+                onClick={handleAdvanceStudy}
+              >
                 예습할래
               </button>
               <button

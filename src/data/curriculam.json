@@ -8,11 +8,11 @@
             "id": "3",
             "title": "프롬프팅의 중요성",
             "steps": [
-              { "id": "1", "type": "prelearning", "component": "DescribeImage", "title": "사전학습" },
-              { "id": "2", "type": "concept", "component": "ImportanceOfPrompting", "title": "개념 및 원리" },
-              { "id": "3", "type": "exploration", "component": "CompareImage", "title": "공통성 탐구" },
-              { "id": "4", "type": "practice", "component": "MakingAvatarsWithPrompting", "title": "실제 연습" },
-              { "id": "5", "type": "review", "component": "AiFeedbackReview", "title": "마무리 및 AI 분석" }
+              { "id": "1", "type": "prelearning", "page": "DescribeImage", "title": "사전학습" },
+              { "id": "2", "type": "concept", "page": "ImportanceOfPrompting", "title": "개념 및 원리" },
+              { "id": "3", "type": "exploration", "page": "CompareImage", "title": "공통성 탐구" },
+              { "id": "4", "type": "practice", "page": "MakingAvatarsWithPrompting", "title": "실제 연습" },
+              { "id": "5", "type": "review", "page": "AiFeedbackReview", "title": "마무리 및 AI 분석" }
             ]
           }  
         ]
@@ -27,7 +27,20 @@
       },
       {
         "id":"4",
-        "name": "AI 실전"
+        "name": "AI 실전",
+        "classes": [
+          {
+            "id": "2",
+            "title": "나만의 AI 비서 만들기",
+            "steps": [
+              { "id": "1", "type": "prelearning", "page": "IntroductionToAiAssistant", "title": "사전학습" },
+              { "id": "2", "type": "concept", "page": "CompareAiAssistants", "title": "개념 및 원리" },
+              { "id": "3", "type": "exploration", "page": "LearningAiAssistant", "title": "공통성 탐구" },
+              { "id": "4", "type": "practice", "page": "MakingOwnAiAssistant", "title": "실제 연습" },
+              { "id": "5", "type": "review", "page": "FinishingUpq", "title": "마무리 및 AI 분석" }
+            ]
+          }  
+        ]
       }
     ]
   }

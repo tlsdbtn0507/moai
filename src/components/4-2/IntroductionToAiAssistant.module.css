@@ -1,0 +1,172 @@
+.container {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.container.fadeOut {
+  opacity: 0;
+}
+
+.container.fadeIn {
+  opacity: 1;
+}
+
+.container.fading {
+  border: 12px solid black;
+}
+
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  gap: 2rem;
+}
+
+.characterImage {
+  width: auto;
+  height: 400px;
+  object-fit: contain;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.characterImage.fadeOut {
+  opacity: 0;
+}
+
+.characterImage.fadeIn {
+  opacity: 1;
+}
+
+.scriptBgLine {
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  max-width: 900px;
+  width: 100%;
+  text-align: center;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  position: absolute;
+  bottom: 2rem;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.scriptBgLine.fadeOut {
+  opacity: 0;
+}
+
+.scriptBgLine.fadeIn {
+  opacity: 1;
+}
+
+.plainText {
+  color: white;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1.4;
+  max-width: 1200px;
+  width: 100%;
+  padding: 2rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  position: absolute;
+  bottom: 2rem;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.plainText.fadeOut {
+  opacity: 0;
+}
+
+.plainText.fadeIn {
+  opacity: 1;
+}
+
+.speechBubbleWrapper {
+  transition: opacity 0.6s ease-in-out;
+}
+
+.speechBubbleWrapper.fadeOut {
+  opacity: 0;
+}
+
+.speechBubbleWrapper.fadeIn {
+  opacity: 1;
+}
+
+.buttonContainer {
+  position: absolute;
+  bottom: 2rem;
+  right: 17rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.button {
+  font-family: var(--font-cookierun);
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 24px;
+  cursor: pointer;
+}
+
+.buttonSecondary {
+  border: 2px solid #fff;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+.buttonPrimary {
+  border: none;
+  background: #4CAF50;
+  color: white;
+}
+
+.dropdownContainer {
+  position: relative;
+}
+
+.dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 0.5rem;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 150px;
+  z-index: 1000;
+}
+
+.dropdownItem {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.dropdownItem:hover {
+  background: #f0f0f0;
+}
+
+.dropdownItemFirst {
+  border-radius: 8px 8px 0 0;
+}
+
+.dropdownItemLast {
+  border-radius: 0 0 8px 8px;
+}
+

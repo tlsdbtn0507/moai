@@ -38,9 +38,13 @@ export function useAudioPlayback(): UseAudioPlaybackReturn {
       ? audioFile 
       : getS3TTSURL(audioFile);
     
+    console.log('오디오 파일명:', audioFile);
+    console.log('생성된 오디오 URL:', audioUrl);
+    
     currentAudio = new Audio(audioUrl);
 
     currentAudio.addEventListener('loadeddata', () => {
+      console.log('오디오 로드 성공:', audioUrl);
       if (onLoaded) {
         onLoaded();
       }
@@ -60,7 +64,9 @@ export function useAudioPlayback(): UseAudioPlaybackReturn {
     });
 
     currentAudio.addEventListener('error', (e) => {
-      console.error('오디오 로드 실패:', e);
+      console.error('오디오 로드 실패:', audioUrl);
+      console.error('오디오 에러 상세:', e);
+      console.error('오디오 엘리먼트 에러:', currentAudio?.error);
       if (onError) {
         onError(e);
       }

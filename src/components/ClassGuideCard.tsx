@@ -14,8 +14,37 @@ type ClassGuideCardProps = {
 
 export function ClassGuideCard(props: ClassGuideCardProps) {
   const [isReady, setIsReady] = createSignal(false);
-  const isActionEnabled = () => /\/3$/.test(props.actionHref);
-  const illustrationImageStyle = getS3ImageURL('sunsetOfMoai.png');
+  
+  // actionHref에서 월드와 클래스 정보 추출 (예: "/4/2")
+  const pathParts = props.actionHref.split('/').filter(Boolean);
+  const worldId = pathParts[0];
+  const classId = pathParts[1] ? parseInt(pathParts[1], 10) : null;
+  
+  // 학습하기 버튼 활성화 조건: 클래스 3이거나 월드 4 클래스 2
+  const isActionEnabled = () => {
+    if (worldId === '4' && classId === 2) {
+      return true;
+    }
+    return /\/3$/.test(props.actionHref);
+  };
+  
+  // 학습하기 버튼 클릭 시 이동할 경로
+  const getActionHref = () => {
+    if (worldId === '4' && classId === 2) {
+      return '/4/2/1';
+    }
+    return `${props.actionHref}/1`;
+  };
+  
+  // 월드 4 클래스 1과 2인 경우 다른 이미지 사용
+  const getIllustrationImage = () => {
+    if (worldId === '4' && (classId === 1 || classId === 2)) {
+      return getS3ImageURL('4-2/maiCity.png');
+    }
+    return getS3ImageURL('sunsetOfMoai.png');
+  };
+  
+  const illustrationImageStyle = getIllustrationImage();
   const nonIllustrationImageStyle = getS3ImageURL('warningMai.png');
   const illustrationImageStyleURL = `url(${illustrationImageStyle})`;
   const nonIllustrationImageStyleURL = `url(${nonIllustrationImageStyle})`;
@@ -62,7 +91,7 @@ export function ClassGuideCard(props: ClassGuideCardProps) {
               </button>
             }
           >
-            <A href={`${props.actionHref}/1`} class={styles.primary}>
+            <A href={getActionHref()} class={styles.primary}>
               학습하기
             </A>
           </Show>

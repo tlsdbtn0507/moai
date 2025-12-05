@@ -6,8 +6,12 @@ import { getS3ImageURL, preloadImages } from '../utils/loading';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import pageContainerStyles from '../styles/PageContainer.module.css';
 import styles from './World.module.css';
-
-type ClassVariant = 'green' | 'gray';
+import { 
+  type ClassVariant, 
+  type ClassConfig, 
+  WORLD_1_CLASS_CONFIGS, 
+  WORLD_4_CLASS_CONFIGS 
+} from './worldClassConfigs';
 
 export function World() {
   const params = useParams();
@@ -21,83 +25,47 @@ export function World() {
     return '';
   };
 
-  const classConfigs: Array<{
-    id: number;
-    position: { top: string; left: string };
-    guideOverride?: { top?: string; left?: string; transform?: string };
-    variant?: ClassVariant;
-  }> = [
-    {
-      id: 1,
-      position: { top: '15%', left: '53%' },
-      guideOverride: { top: '33%', left: '60%' },
-    },
-    { id: 2, position: { top: '30%', left: '35%' } },
-    {
-      id: 3,
-      position: { top: '37%', left: '53%' },
-      guideOverride: { top: '33%', left: '60%' },
-      variant: 'green',
-    },
-    {
-      id: 4,
-      position: { top: '55%', left: '54%' },
-      guideOverride: { top: '50%', left: '61%' },
-      variant: 'gray',
-    },
-    {
-      id: 5,
-      position: { top: '60%', left: '38%' },
-      guideOverride: {
-        top: '57%',
-        left: '40%',
-      },
-      variant: 'gray',
-    },
-    {
-      id: 6,
-      position: { top: '56%', left: '18%' },
-      guideOverride: { 
-        top: '56%', 
-        left: '57%', 
-        transform: 'translate(calc(-100% - 32px), -20%)', // 필요 시 원하는 값으로 조정
-
-      },
-      variant: 'gray',
-    },
-    {
-      id: 7,
-      position: { top: '75%', left: '25%' },
-      guideOverride: { 
-        top: '56%', 
-        left: '64%',
-        transform: 'translate(calc(-100% - 32px), -20%)',
-       },
-      variant: 'gray',
-    },
-    {
-      id: 8,
-      position: { top: '83%', left: '46%' },
-      guideOverride: {
-        top: '50%',
-        left: '16%',
-        transform: 'translate(16px, -20%)',
-      },
-      variant: 'gray',
-    },
-  ];
-
-  const guideContent = {
-    heading: '프롬프트팅의 중요성',
-    description:
-      '인공지능에게 문제 해결을 위한 명확한 명령을 구성하여 상황에 맞게 효과적인 질문과 지시를 할 수 있다.',
-    lockedDescription: '선행 차시를 완료하고 진행해주세요.',
+  const classConfigs = (): ClassConfig[] => {
+    if (worldId() === '4') {
+      return WORLD_4_CLASS_CONFIGS;
+    }
+    return WORLD_1_CLASS_CONFIGS;
   };
 
-  const activeClass = () => classConfigs.find((config) => config.id === activeClassId());
+  const guideContent = (classId?: number) => {
+    if (worldId() === '4') {
+      if (classId === 1) {
+        return {
+          heading: 'AI비서 만들기 입문',
+          description:
+            'AI 비서의 핵심 기능을 설계하고 활용 방법을 익혀 실전에서 효과적으로 AI를 활용할 수 있다.',
+          lockedDescription: '선행 차시를 완료하고 진행해주세요.',
+        };
+      }
+      return {
+        heading: '나만의 AI비서 설계',
+        description:
+          'AI 비서의 핵심 기능을 설계하고 활용 방법을 익혀 실전에서 효과적으로 AI를 활용할 수 있다.',
+        lockedDescription: '선행 차시를 완료하고 진행해주세요.',
+      };
+    }
+    return {
+      heading: '프롬프트팅의 중요성',
+      description:
+        '인공지능에게 문제 해결을 위한 명확한 명령을 구성하여 상황에 맞게 효과적인 질문과 지시를 할 수 있다.',
+      lockedDescription: '선행 차시를 완료하고 진행해주세요.',
+    };
+  };
+
+  const activeClass = () => classConfigs().find((config) => config.id === activeClassId());
 
   const handleClassClick = (event: MouseEvent, classId: number) => {
     event.preventDefault();
+    // 월드 4에서 클래스 3 이상은 경고만 표시하고 링크 비활성화
+    if (worldId() === '4' && classId >= 3) {
+      setActiveClassId(classId);
+      return;
+    }
     setActiveClassId((prev) => (prev === classId ? null : classId));
   };
 
@@ -146,16 +114,19 @@ export function World() {
       </header>
 
       <div class={styles.classesContainer}>
-        {classConfigs.map((classConfig) => (
-          <A
-            href={`/${worldId()}/${classConfig.id}`}
-            class={`${styles.classButton} ${buttonVariantClass(classConfig.variant)}`}
-            style={{ top: classConfig.position.top, left: classConfig.position.left }}
-            onClick={(event) => handleClassClick(event, classConfig.id)}
-          >
-            {classConfig.id}
-          </A>
-        ))}
+        {classConfigs().map((classConfig) => {
+          const isLockedInWorld = worldId() === '4' ? classConfig.id >= 3 : classConfig.id > 2;
+          return (
+            <A
+              href={isLockedInWorld ? '#' : `/${worldId()}/${classConfig.id}`}
+              class={`${styles.classButton} ${buttonVariantClass(classConfig.variant)}`}
+              style={{ top: classConfig.position.top, left: classConfig.position.left }}
+              onClick={(event) => handleClassClick(event, classConfig.id)}
+            >
+              {classConfig.id}
+            </A>
+          );
+        })}
 
         <Show when={activeClass()}>
           {(selected) => (
@@ -176,10 +147,8 @@ export function World() {
               >
                 <ClassGuideCard
                   chapterLabel={`월드 ${worldId()} · ${selected().id}차시`}
-                  heading={isLockedClass() ? '선행 차시를 완료하세요.' : guideContent.heading}
-                  description={isLockedClass() ? guideContent.lockedDescription : guideContent.description}
-
-
+                  heading={isLockedClass() ? '선행 차시를 완료하세요.' : guideContent(selected().id).heading}
+                  description={isLockedClass() ? guideContent(selected().id).lockedDescription : guideContent(selected().id).description}
                   actionHref={`/${worldId()}/${selected().id}`}
                   onClose={closeGuide}
                 />
