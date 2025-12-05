@@ -1,0 +1,265 @@
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1400px;
+  gap: 2rem;
+  z-index: 1;
+}
+
+.titleImage {
+  width: auto;
+  height: auto;
+  max-width: 600px;
+  object-fit: contain;
+}
+
+.mainContent {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+  height: 452px;
+
+}
+
+.characterPanel {
+  flex: 0 0 400px;
+  background: #ffffff96;
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  /* gap: 1.5rem; */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.characterSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.characterNameWrapper {
+
+}
+
+.characterButton {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.characterButton:hover {
+  transform: scale(1.1);
+}
+
+.characterButton.active {
+  border-color: #4CAF50;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.characterIcon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.characterNameContainer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.arrowButton {
+  background: transparent;
+  border: 2px solid #333;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.arrowButton:hover {
+  background: #f0f0f0;
+  transform: scale(1.1);
+}
+
+.characterName {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.characterImageContainer {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.characterImage {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  object-fit: contain;
+}
+
+.dialoguePanel {
+  flex: 1;
+  background: #ffffff96;
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.userQuestion {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  /* background: #f5f5f5; */
+  border-radius: 12px;
+  flex-direction: row-reverse;
+  align-items: center;
+}
+
+.userAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.questionText {
+  flex: 1;
+  font-size :1rem;
+  color: #333;
+  line-height: 1.5;
+  background: #BCCAFF;
+  padding: 1rem;
+  border-radius: 24px;  
+}
+
+.assistantMessages {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.messageBubble {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.messageAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.messageText {
+  flex: 1;
+  padding: 1rem;
+  background: #e3f2fd;
+  border-radius: 12px;
+  /* font-size: 1rem; */
+  font-size :smaller;
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.inputArea {
+  width: 90%;
+  height: 80px;
+  /* background: rgba(30, 30, 60, 0.9); */
+  background: white;
+  border: 12px solid rgba(30, 30, 60, 0.9);;
+  padding: 1rem;
+  border-radius: 60px;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.inputField {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 17px;
+  background: white;
+  color: #333;
+  font-family: var(--font-cookierun);
+  outline: none;
+}
+
+.inputField::placeholder {
+  color: #999;
+}
+
+.submitButton {
+  font-family: var(--font-cookierun);
+  padding: 1rem 2rem;
+  background: rgba(30, 30, 60, 0.9);
+  color: white;
+  border: none;
+  border-radius: 36px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #1976D2;
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
