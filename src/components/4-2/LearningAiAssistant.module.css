@@ -1,0 +1,203 @@
+.container {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.container.fadeOut {
+  opacity: 0;
+}
+
+.container.fadeIn {
+  opacity: 1;
+}
+
+.container.fading {
+  border: 12px solid black;
+}
+
+.contentWrapper {
+  display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 900px;
+    /* max-width: 1200px; */
+    gap: 2rem;
+    position: relative;
+    /* width: 1200px; */
+    height: 650px;
+    background-color: white;
+}
+
+.activityTitle {
+  color: black;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 500;
+  margin: 1rem 0;
+  transition: opacity 0.6s ease-in-out;
+  position: absolute;
+  top: 5rem;
+}
+
+.spanWrapper {
+  background-color: #A9E0FF;
+  padding: 0.5rem 6rem;
+  border-radius: 1rem;
+  position: absolute;
+  top: 2rem;
+}
+
+.activityTitle.fadeOut {
+  opacity: 0;
+}
+
+.activityTitle.fadeIn {
+  opacity: 1;
+}
+   
+.contentImage {
+  width: 80%;
+  object-fit: contain;
+  transition: opacity 0.6s ease-in-out;
+}
+
+.contentImage.mediumSize {
+  width: 57%;
+  object-fit: contain;
+  transition: opacity 0.6s ease-in-out;
+  position: absolute;
+  top: 25%;
+}
+
+.contentImage.largeSize {
+  width: 76%;
+  object-fit: contain;
+  transition: opacity 0.6s ease-in-out;
+  position: absolute;
+  top: 25%;
+}
+
+.contentImage.topPosition {
+  position: absolute;
+  top: 10rem;
+}
+
+.contentImage.fadeOut {
+  opacity: 0;
+}
+
+.contentImage.fadeIn {
+  opacity: 1;
+}
+
+.characterImage {
+  /* width: auto; */
+  width: 250px;
+  height: 250px;
+  object-fit: contain;
+  transition: opacity 0.6s ease-in-out;
+  position: absolute;
+  bottom: 1.5rem;
+  z-index: 10;
+}
+
+.characterImage.fadeOut {
+  opacity: 0;
+}
+
+.characterImage.fadeIn {
+  opacity: 1;
+}
+
+.characterRight {
+  right: 2rem;
+  /* top: 50%; */
+  /* transform: translateY(-50%); */
+}
+
+.characterLeft {
+  left: 5rem;
+  /* top: 50%; */
+  transform: translateX(-50%) scaleX(-1);
+}
+   
+.speechBubbleWrapper {
+  transition: opacity 0.6s ease-in-out;
+  margin-top: 2rem;
+  position: absolute;
+  bottom: 1.5rem;
+}
+
+.speechBubbleWrapper.fadeOut {
+  opacity: 0;
+}
+
+.speechBubbleWrapper.fadeIn {
+  opacity: 1;
+}
+
+.buttonContainer {
+  position: absolute;
+  bottom: 3rem;
+  right: 24rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.button {
+  font-family: var(--font-cookierun);
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 24px;
+  cursor: pointer;
+  border: none;
+}
+
+.buttonSecondary {
+  border: 2px solid #fff;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+.buttonPrimary {
+  background: #4CAF50;
+  color: white;
+}
+
+.button:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+
+.fadeIn {
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+.fadeOut {
+  animation: fadeOut 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
