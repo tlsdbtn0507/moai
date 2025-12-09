@@ -25,8 +25,7 @@ const MakingOwnAiAssistant = () => {
   const [aiAssistantName, setAiAssistantName] = createSignal('');
   const [audioContextActivated, setAudioContextActivated] = createSignal(false);
   const [wasSkipped, setWasSkipped] = createSignal(false);
-  // const [showAiStudio, setShowAiStudio] = createSignal(false);
-  const [showAiStudio, setShowAiStudio] = createSignal(true);
+  const [showAiStudio, setShowAiStudio] = createSignal(false);
   // 각 hole에 드롭된 타입 정보 저장
   const [droppedTypes, setDroppedTypes] = createSignal<{[key: string]: {partUrl: string, typeName: string, features: string[]}}>({});
   // 드래그 유도를 위한 하이라이트할 hole 타입

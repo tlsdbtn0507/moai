@@ -19,6 +19,7 @@ const AiFunction = (props: AiFunctionProps = {}) => {
   // 직접 입력 모드 상태
   const [isDirectInputMode, setIsDirectInputMode] = createSignal(false);
   const [directInputValue, setDirectInputValue] = createSignal('');
+  const [isSubmittingDirectInput, setIsSubmittingDirectInput] = createSignal(false);
   // 동적으로 추가된 기능들 (타입별로 관리)
   const [customFeatures, setCustomFeatures] = createSignal<{[key: number]: string[]}>({});
   
@@ -131,6 +132,7 @@ const AiFunction = (props: AiFunctionProps = {}) => {
     // 직접 입력 모드 초기화
     setIsDirectInputMode(false);
     setDirectInputValue('');
+    setIsSubmittingDirectInput(false);
     
     // 완료된 탭이면 스토어에서 features 가져오고 선택 완료 화면 표시
     if (isTypeCompleted(typeId)) {
@@ -243,13 +245,18 @@ const AiFunction = (props: AiFunctionProps = {}) => {
   const handleDirectInputClick = () => {
     setIsDirectInputMode(true);
     setDirectInputValue('');
+    setIsSubmittingDirectInput(false);
   };
 
   // 직접 입력 제출 핸들러
   const handleDirectInputSubmit = () => {
+    if (isSubmittingDirectInput()) return;
+    setIsSubmittingDirectInput(true);
+    
     const input = directInputValue().trim();
     if (!input) {
       setIsDirectInputMode(false);
+      setIsSubmittingDirectInput(false);
       return;
     }
 
@@ -263,12 +270,14 @@ const AiFunction = (props: AiFunctionProps = {}) => {
     // 입력 모드 종료
     setIsDirectInputMode(false);
     setDirectInputValue('');
+    setIsSubmittingDirectInput(false);
   };
 
   // 직접 입력 취소 핸들러
   const handleDirectInputCancel = () => {
     setIsDirectInputMode(false);
     setDirectInputValue('');
+    setIsSubmittingDirectInput(false);
   };
 
   // 직접 입력 키 핸들러
