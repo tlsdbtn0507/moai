@@ -1,4 +1,4 @@
-import { Show, onMount, createSignal, createEffect, onCleanup } from 'solid-js';
+import { Show, onMount, createSignal, createEffect, onCleanup, createMemo } from 'solid-js';
 import { useNavigate, useParams } from '@solidjs/router';
 import { getS3ImageURL, preloadImages, getS3TTSURL } from '../../utils/loading';
 import { SpeechBubble } from '../SpeechBubble';
@@ -275,6 +275,21 @@ const IntroductionToAiAssistant = () => {
   });
 
   const currentScriptData = () => currentScript();
+  
+  // id에 따라 SpeechBubble type 결정 (반응형으로 만들기)
+  const speechBubbleType = createMemo((): 'smartie' | 'kylie' | 'logos' | undefined => {
+    const scriptId = currentScriptData()?.id;
+    if (!scriptId) return undefined;
+    
+    if (scriptId >= 17 && scriptId <= 20) {
+      return 'smartie';
+    } else if (scriptId >= 21 && scriptId <= 25) {
+      return 'kylie';
+    } else if (scriptId >= 26 && scriptId <= 28) {
+      return 'logos';
+    }
+    return undefined;
+  });
 
   return (
     <Show when={isReady()} fallback={<LoadingSpinner />}>
@@ -294,7 +309,11 @@ const IntroductionToAiAssistant = () => {
           </Show>
           <Show when={currentScriptData()?.speechBubble && !isFading()}>
             <div class={`${styles.speechBubbleWrapper} ${styles.fadeIn}`}>
-              <SpeechBubble message={typingAnimation.displayedMessage()} size={800} />
+              <SpeechBubble 
+                message={typingAnimation.displayedMessage()} 
+                size={800} 
+                type={speechBubbleType()}
+              />
             </div>
           </Show>
           

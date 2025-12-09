@@ -1,0 +1,46 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.contentWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    width: 90%;
+    height: 90%;
+    padding: 1rem 2rem;
+    border-radius: 2rem;
+    background-color: white;
+}
+
+.spanWrapper {
+    background-color: #BCCAFF;
+    padding: 0.5rem 6rem;
+    border-radius: 1rem;
+}
+
+.spanWrapper span {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.aiAssistantImage {
+    width: 300px;
+    height: auto;
+}
+
+.maiImageWrapper {
+    position: absolute;
+    bottom: 1rem;
+}
+
+.buttonWrapper {
+    position: absolute;
+    bottom: 1rem;
+    right: 9rem;
+}

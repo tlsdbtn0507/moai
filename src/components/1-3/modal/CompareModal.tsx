@@ -185,7 +185,7 @@ export function CompareModal(props: CompareModalProps) {
                     }
                   }}
                 >
-                  다시하기
+                  그림 다시 그리기
                 </button>
               </div>
             </div>
