@@ -33,6 +33,13 @@ export interface CompareStepScriptInterface {
   logos:string[];
 }
 
+interface FinishingUpqScriptInterface {
+    id: number;
+    script: string;
+    voice: string;
+    maiPng: string;
+}
+
 export const introductionScripts: IntroductionScriptInterface[] = [
     {
         id: 1,
@@ -670,4 +677,37 @@ export const conceptStepScripts : ConceptScriptInterface[] = [
         maiPng: '4-2/outstretchedMai.png',
         isMaiRight: true,
     }
+]
+
+export const finishingUpqScripts: FinishingUpqScriptInterface[] = [
+    {
+        id: 1,
+        script: '이제 오늘 너는 비서의 이름, 역할, 기능, 말투, 행동 규칙, 도구까지\n AI 비서를 이루는 핵심 요소들을 모두 직접 정리해봤어.',
+        voice: '4-2/4-2_conclusion_1.mp3',
+        maiPng: '4-2/pocketMai.png',
+    },
+    {
+        id: 2,
+        script: '이제 비서가 어떤 방식으로 생각하고 움직일지\n기반이 마련된 거야.',
+        voice: '4-2/4-2_conclusion_2.mp3',
+        maiPng: '4-2/pocketMai.png',
+    },
+    {
+        id: 3,
+        script: '하지만, AI가 항상 우리가 정한 틀대로만 행동하는 건 아니야.\n상황이 달라지면, 예상 밖의 판단을 하기도 하지.',
+        voice: '4-2/4-2_conclusion_3.mp3',
+        maiPng: '4-2/pocketMai.png',
+    },
+    {
+        id: 4,
+        script: '그래서 다음 시간에는 ‘AI가 일관되게 움직이도록 만드는\n가이드라인’을 직접 만들어볼 거야.',
+        voice: '4-2/4-2_conclusion_4.mp3',
+        maiPng: '4-2/pocketMai.png',
+    },
+    {
+        id: 5,
+        script: '그럼 다음 시간에 만나자!',
+        voice: '4-2/4-2_conclusion_5.mp3',
+        maiPng: '4-2/pocketMai.png',
+    },
 ]
