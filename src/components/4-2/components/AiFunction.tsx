@@ -432,11 +432,23 @@ const AiFunction = (props: AiFunctionProps = {}) => {
 
             {/* 선택 완료 버튼 */}
             <button 
-                class={`${styles.completeButton} ${!isCompleteButtonEnabled() ? styles.completeButtonDisabled : ''}`}
+                class={`${styles.completeButton} ${
+                    isCompleteButtonEnabled() 
+                        ? styles.completeButtonEnabled 
+                        : styles.completeButtonDisabled
+                }`}
                 disabled={!isCompleteButtonEnabled()}
                 onClick={() => setIsSelected(true)}
+                style={{
+                    'background': isCompleteButtonEnabled() 
+                        ? `linear-gradient(135deg, ${currentType().color}ff, ${currentType().color}dd, ${currentType().color}cc, ${currentType().color}dd, ${currentType().color}ff)`
+                        : '#F0F0F0',
+                    'color': isCompleteButtonEnabled() 
+                        ? '#333' 
+                        : '#999',
+                }}
             >
-                선택 완료
+                <span>선택 완료</span>
             </button>
             </Show>
             <Show when={isSelected()}>
