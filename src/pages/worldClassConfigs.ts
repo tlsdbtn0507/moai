@@ -68,6 +68,67 @@ export const WORLD_1_CLASS_CONFIGS: ClassConfig[] = [
   },
 ];
 
+// 월드 2 클래스 설정
+export const WORLD_2_CLASS_CONFIGS: ClassConfig[] = [
+  {
+    id: 1,
+    position: { top: '21%', left: '53%' },
+    guideOverride: { top: '33%', left: '60%' },
+  },
+  {
+    id: 2,
+    position: { top: '33%', left: '35%' },
+    guideOverride: { top: '33%', left: '60%' },
+  },
+  {
+    id: 3,
+    position: { top: '42%', left: '53%' },
+    guideOverride: { top: '33%', left: '60%' },
+  },
+  {
+    id: 4,
+    position: { top: '55%', left: '54%' },
+    guideOverride: { top: '50%', left: '61%' },
+  },
+  {
+    id: 5,
+    position: { top: '60%', left: '38%' },
+    guideOverride: {
+      top: '57%',
+      left: '40%',
+    },
+  },
+  {
+    id: 6,
+    position: { top: '66%', left: '18%' },
+    guideOverride: { 
+      top: '56%', 
+      left: '57%', 
+      transform: 'translate(calc(-100% - 32px), -20%)',
+    },
+  },
+  {
+    id: 7,
+    position: { top: '76%', left: '32%' },
+    guideOverride: { 
+      top: '56%', 
+      left: '72%',
+      transform: 'translate(calc(-100% - 32px), -20%)',
+    },
+    variant: 'green',
+  },
+  {
+    id: 8,
+    position: { top: '83%', left: '55%' },
+    guideOverride: {
+      top: '50%',
+      left: '16%',
+      transform: 'translate(16px, -20%)',
+    },
+    variant: 'gray',
+  },
+];
+
 // 월드 4 클래스 설정
 export const WORLD_4_CLASS_CONFIGS: ClassConfig[] = [
   {

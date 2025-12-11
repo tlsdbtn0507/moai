@@ -20,8 +20,11 @@ export function ClassGuideCard(props: ClassGuideCardProps) {
   const worldId = pathParts[0];
   const classId = pathParts[1] ? parseInt(pathParts[1], 10) : null;
   
-  // 학습하기 버튼 활성화 조건: 클래스 3이거나 월드 4 클래스 2
+  // 학습하기 버튼 활성화 조건: 클래스 3이거나 월드 4 클래스 2, 또는 월드 2 클래스 7
   const isActionEnabled = () => {
+    if (worldId === '2' && classId === 7) {
+      return true;
+    }
     if (worldId === '4' && classId === 2) {
       return true;
     }
@@ -30,6 +33,9 @@ export function ClassGuideCard(props: ClassGuideCardProps) {
   
   // 학습하기 버튼 클릭 시 이동할 경로
   const getActionHref = () => {
+    if (worldId === '2' && classId === 7) {
+      return '/2/7/1';
+    }
     if (worldId === '4' && classId === 2) {
       return '/4/2/1';
     }
@@ -37,7 +43,11 @@ export function ClassGuideCard(props: ClassGuideCardProps) {
   };
   
   // 월드 4 클래스 1과 2인 경우 다른 이미지 사용
+  // 월드 2 클래스 1-7인 경우 '2-7/desk.png' 사용
   const getIllustrationImage = () => {
+    if (worldId === '2' && classId !== null && classId >= 1 && classId <= 7) {
+      return getS3ImageURL('2-7/desk.png');
+    }
     if (worldId === '4' && (classId === 1 || classId === 2)) {
       return getS3ImageURL('4-2/maiCity.png');
     }
@@ -72,7 +82,11 @@ export function ClassGuideCard(props: ClassGuideCardProps) {
       <div class={styles.body}>
       <div class={styles.illustration}
       style={{
-        'background-image': Number(props.actionHref.split('/').pop()) <= 3 ? illustrationImageStyleURL : nonIllustrationImageStyleURL,
+        'background-image': (worldId === '2' && classId === 8) 
+          ? nonIllustrationImageStyleURL 
+          : (worldId === '2' && classId !== null && classId >= 1 && classId <= 7)
+          ? illustrationImageStyleURL
+          : (Number(props.actionHref.split('/').pop()) <= 3 ? illustrationImageStyleURL : nonIllustrationImageStyleURL),
       }}
       aria-hidden="true" />
         {/* <p class={styles.chapterLabel}>{props.chapterLabel}</p> */}

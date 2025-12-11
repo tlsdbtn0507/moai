@@ -10,6 +10,7 @@ import {
   type ClassVariant, 
   type ClassConfig, 
   WORLD_1_CLASS_CONFIGS, 
+  WORLD_2_CLASS_CONFIGS,
   WORLD_4_CLASS_CONFIGS 
 } from './worldClassConfigs';
 
@@ -26,6 +27,9 @@ export function World() {
   };
 
   const classConfigs = (): ClassConfig[] => {
+    if (worldId() === '2') {
+      return WORLD_2_CLASS_CONFIGS;
+    }
     if (worldId() === '4') {
       return WORLD_4_CLASS_CONFIGS;
     }
@@ -33,6 +37,30 @@ export function World() {
   };
 
   const guideContent = (classId?: number) => {
+    if (worldId() === '2') {
+      if (classId === 2) {
+        return {
+          heading: 'AI의 정보출처 판단하기',
+          description:
+            'AI가 제공하는 정보의 출처를 판단하고 신뢰성을 평가하여 정확한 정보를 활용할 수 있다.',
+          lockedDescription: '선행 차시를 완료하고 진행해주세요.',
+        };
+      }
+      if (classId === 7) {
+        return {
+          heading: 'AI의 정보출처 판단하기',
+          description:
+            'AI가 제시한 정보의 출처와 신뢰성을 판단하여, 사실에 기반한 답을 스스로 검증할 수 있다.',
+          lockedDescription: '선행 차시를 완료하고 진행해주세요.',
+        };
+      }
+      return {
+        heading: 'AI의 정보출처 판단하기',
+        description:
+          'AI가 제공하는 정보의 출처를 판단하고 신뢰성을 평가하여 정확한 정보를 활용할 수 있다.',
+        lockedDescription: '선행 차시를 완료하고 진행해주세요.',
+      };
+    }
     if (worldId() === '4') {
       if (classId === 1) {
         return {
@@ -63,6 +91,11 @@ export function World() {
     event.preventDefault();
     // 월드 4에서 클래스 3 이상은 경고만 표시하고 링크 비활성화
     if (worldId() === '4' && classId >= 3) {
+      setActiveClassId(classId);
+      return;
+    }
+    // 월드 2에서 클래스 2와 7만 활성화
+    if (worldId() === '2' && classId !== 2 && classId !== 7) {
       setActiveClassId(classId);
       return;
     }
@@ -114,12 +147,31 @@ export function World() {
 
       <div class={styles.classesContainer}>
         {classConfigs().map((classConfig) => {
-          const isLockedInWorld = worldId() === '4' ? classConfig.id >= 3 : classConfig.id > 2;
+          const isLockedInWorld = worldId() === '4' ? classConfig.id >= 3 : worldId() === '2' ? classConfig.id !== 2 && classConfig.id !== 7 : classConfig.id > 2;
+          
+          // 월드 2의 버튼 스타일 적용
+          let buttonStyle: Record<string, string> = { top: classConfig.position.top, left: classConfig.position.left };
+          if (worldId() === '2') {
+            if (classConfig.id <= 6) {
+              // 차시 1-6은 파란색
+              buttonStyle.background = 'radial-gradient(circle at 40% 30%, #a8dbff, #58b8ff)';
+              buttonStyle['border-color'] = '#2d8be8';
+            } else if (classConfig.id === 7) {
+              // 차시 7은 초록색
+              buttonStyle.background = 'radial-gradient(circle at 40% 30%, #9ef4c2, #38c172)';
+              buttonStyle['border-color'] = '#1f8a4d';
+            } else if (classConfig.id === 8) {
+              // 차시 8은 회색
+              buttonStyle.background = 'radial-gradient(circle at 40% 30%, #d9d9d9, #9b9b9b)';
+              buttonStyle['border-color'] = '#6d6d6d';
+            }
+          }
+          
           return (
             <A
               href={isLockedInWorld ? '#' : `/${worldId()}/${classConfig.id}`}
-              class={`${styles.classButton} ${buttonVariantClass(classConfig.variant)}`}
-              style={{ top: classConfig.position.top, left: classConfig.position.left }}
+              class={`${styles.classButton} ${worldId() !== '2' ? buttonVariantClass(classConfig.variant) : ''}`}
+              style={buttonStyle}
               onClick={(event) => handleClassClick(event, classConfig.id)}
             >
               {classConfig.id}
