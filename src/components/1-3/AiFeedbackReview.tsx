@@ -70,6 +70,20 @@ const AiFeedbackReview = () => {
     }
   };
 
+  // 이전 스크립트로 진행
+  const proceedToPrev = () => {
+    cancelAutoProceed();
+    const prevIndex = currentScriptIndex() - 1;
+    if (prevIndex >= 0) {
+      typingAnimation.resetSkipState();
+      setWasSkipped(false);
+      audioPlayback.stopAudio();
+      setTimeout(() => {
+        setCurrentScriptIndex(prevIndex);
+      }, 10);
+    }
+  };
+
   // 스킵 컨트롤 훅
   useSkipControls({
     isTypingSkipped: typingAnimation.isTypingSkipped,
@@ -84,13 +98,7 @@ const AiFeedbackReview = () => {
     onSecondSkip: () => {
       cancelAutoProceed();
       audioPlayback.stopAudio();
-      const scriptIndex = currentScriptIndex();
-      if (scriptIndex < aiFeedbackReviewScripts.length - 1) {
-        proceedToNext();
-      } else {
-        // 마지막 스크립트를 스킵한 경우 버튼 표시
-        setShowConfirmButton(true);
-      }
+      // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
     },
   });
 
@@ -104,16 +112,8 @@ const AiFeedbackReview = () => {
     if (!wasSkipped() || !audioPlayback.isPlaying()) {
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
-          if (scriptIndex < aiFeedbackReviewScripts.length - 1) {
-            if (wasSkipped()) {
-              cancelAutoProceed();
-              autoProceedTimeout = setTimeout(() => {
-                proceedToNext();
-              }, 500);
-            } else {
-              proceedToNext();
-            }
-          } else {
+          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
+          if (scriptIndex >= aiFeedbackReviewScripts.length - 1) {
             // 마지막 스크립트 완료 - 버튼 표시
             setShowConfirmButton(true);
           }
@@ -264,7 +264,35 @@ const AiFeedbackReview = () => {
               <Show when={currentScript()}>
                 <div style={{ display: 'flex', 'flex-direction': 'column', 'align-items': 'center' }}>
                   {currentScriptImage()}
-                  <SpeechBubble message={typingAnimation.displayedMessage()} />
+                  <SpeechBubble 
+                    message={typingAnimation.displayedMessage()}
+                    showNavigation={true}
+                    onNext={proceedToNext}
+                    onPrev={proceedToPrev}
+                    isComplete={() => {
+                      const script = currentScript();
+                      if (!script) return false;
+                      const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                      const isAudioComplete = !audioPlayback.isPlaying();
+                      // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+                      if (typingAnimation.isTypingSkipped() || wasSkipped()) {
+                        return isTypingComplete;
+                      }
+                      return isTypingComplete && isAudioComplete;
+                    }}
+                    canGoNext={() => {
+                      const script = currentScript();
+                      if (!script) return false;
+                      const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                      const isAudioComplete = !audioPlayback.isPlaying();
+                      // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+                      const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped()) 
+                        ? isTypingComplete 
+                        : (isTypingComplete && isAudioComplete);
+                      return isComplete && currentScriptIndex() < aiFeedbackReviewScripts.length - 1;
+                    }}
+                    canGoPrev={() => currentScriptIndex() > 0}
+                  />
                 </div>
               </Show>
               <Show when={showConfirmButton()}>

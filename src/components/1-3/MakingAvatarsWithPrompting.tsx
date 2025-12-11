@@ -102,6 +102,20 @@ const MakingAvatarsWithPrompting = () => {
     }
   };
 
+  // 이전 스크립트로 진행
+  const proceedToPrev = () => {
+    cancelAutoProceed();
+    const prevIndex = currentScriptIndex() - 1;
+    if (prevIndex >= 0) {
+      typingAnimation.resetSkipState();
+      setWasSkipped(false);
+      audioPlayback.stopAudio();
+      setTimeout(() => {
+        setCurrentScriptIndex(prevIndex);
+      }, 10);
+    }
+  };
+
   // MakeAvatar 컴포넌트를 표시하기 위한 함수
   const showMakeAvatar = () => {
     cancelAutoProceed();
@@ -132,12 +146,7 @@ const MakingAvatarsWithPrompting = () => {
       
       cancelAutoProceed();
       audioPlayback.stopAudio();
-      if (currentScriptIndex() > 4) {
-        // 마지막 단계라면 추후 처리
-        return;
-      } else {
-        proceedToNext();
-      }
+      // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
     },
   });
 
@@ -168,19 +177,7 @@ const MakingAvatarsWithPrompting = () => {
             return;
           }
           
-          // id 5 (index 4)는 마지막 단계
-          if (scriptIndex < 4) {
-            if (wasSkipped()) {
-              cancelAutoProceed();
-              autoProceedTimeout = setTimeout(() => {
-                proceedToNext();
-              }, 500);
-            } else {
-              proceedToNext();
-            }
-          } else {
-            // 마지막 스크립트의 음성이 끝나면 추후 처리
-          }
+          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
         },
       });
     }
@@ -294,7 +291,36 @@ const MakingAvatarsWithPrompting = () => {
             <h1 class={styles.title}>실습 : 캐릭터 만들어보기</h1>
             <div class={styles.content}>
               {currentScriptImage()}
-              <SpeechBubble size={550}message={typingAnimation.displayedMessage()} />
+              <SpeechBubble 
+                size={550}
+                message={typingAnimation.displayedMessage()}
+                showNavigation={currentScript()?.id !== 3}
+                onNext={proceedToNext}
+                onPrev={proceedToPrev}
+                isComplete={() => {
+                  const script = currentScript();
+                  if (!script || script.id === 3 || script.id === 4) return false;
+                  const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                  const isAudioComplete = !audioPlayback.isPlaying();
+                  // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+                  if (typingAnimation.isTypingSkipped() || wasSkipped()) {
+                    return isTypingComplete;
+                  }
+                  return isTypingComplete && isAudioComplete;
+                }}
+                canGoNext={() => {
+                  const script = currentScript();
+                  if (!script || script.id === 3 || script.id === 4) return false;
+                  const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                  const isAudioComplete = !audioPlayback.isPlaying();
+                  // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+                  const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped()) 
+                    ? isTypingComplete 
+                    : (isTypingComplete && isAudioComplete);
+                  return isComplete && currentScriptIndex() < 4;
+                }}
+                canGoPrev={() => currentScriptIndex() > 0 && currentScript()?.id !== 3 && currentScript()?.id !== 4}
+              />
               <Show when={currentScript()?.id === 2}>
                 <img class={styles.sideCharacterImage} src={getS3ImageURL('1-3/smileRunningMai.png')} alt="웃으며_뛰는_마이" />
               </Show>

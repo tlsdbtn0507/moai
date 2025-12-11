@@ -86,6 +86,19 @@ const DetermineInfoConcept = () => {
     }
   };
 
+  const proceedToPrev = () => {
+    cancelAutoProceed();
+    const prevIndex = currentScriptIndex() - 1;
+    if (prevIndex >= 0) {
+      typingAnimation.resetSkipState();
+      setWasSkipped(false);
+      audioPlayback.stopAudio();
+      setTimeout(() => {
+        setCurrentScriptIndex(prevIndex);
+      }, 10);
+    }
+  };
+
   // 스킵 컨트롤 훅 (컴포넌트 레벨에서 호출)
   useSkipControls({
     isTypingSkipped: typingAnimation.isTypingSkipped,
@@ -100,11 +113,7 @@ const DetermineInfoConcept = () => {
     onSecondSkip: () => {
       cancelAutoProceed();
       audioPlayback.stopAudio();
-      if (currentScriptIndex() >= determineInfoConceptScripts.length - 1) {
-        // 마지막 스크립트에서는 자동 진행하지 않음
-      } else {
-        proceedToNext();
-      }
+      // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
     },
   });
 
@@ -120,16 +129,7 @@ const DetermineInfoConcept = () => {
     if (!wasSkipped() || !audioPlayback.isPlaying()) {
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
-          if (scriptIndex < determineInfoConceptScripts.length - 1) {
-            if (wasSkipped()) {
-              cancelAutoProceed();
-              autoProceedTimeout = setTimeout(() => {
-                proceedToNext();
-              }, 500);
-            } else {
-              proceedToNext();
-            }
-          }
+          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
         },
       });
     }
@@ -248,7 +248,38 @@ const DetermineInfoConcept = () => {
                 }}
               />
             </div>
-            <SpeechBubble message={typingAnimation.displayedMessage()} size={600} />
+            <SpeechBubble 
+              message={typingAnimation.displayedMessage()} 
+              size={600}
+              showNavigation={true}
+              onNext={proceedToNext}
+              onPrev={proceedToPrev}
+              isComplete={() => {
+                const script = currentScript();
+                if (!script) return false;
+                // 타이핑 애니메이션과 음성 재생이 완료되었는지 확인
+                const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                const isAudioComplete = !audioPlayback.isPlaying();
+                // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+                if (typingAnimation.isTypingSkipped() || wasSkipped()) {
+                  return isTypingComplete;
+                }
+                return isTypingComplete && isAudioComplete;
+              }}
+              canGoNext={() => {
+                const script = currentScript();
+                if (!script) return false;
+                // 타이핑 애니메이션과 음성 재생이 완료되었는지 확인
+                const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                const isAudioComplete = !audioPlayback.isPlaying();
+                // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+                const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped()) 
+                  ? isTypingComplete 
+                  : (isTypingComplete && isAudioComplete);
+                return isComplete && currentScriptIndex() < determineInfoConceptScripts.length - 1;
+              }}
+              canGoPrev={() => currentScriptIndex() > 0}
+            />
           </div>
           <Show when={isLastScript() && (typingAnimation.displayedMessage().length === currentScript()?.script.length || wasSkipped())}>
             <div style={{ display: 'flex', gap: '1rem', 'justify-content': 'center', margin: '2rem 0' }}>

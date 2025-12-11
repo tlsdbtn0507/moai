@@ -100,6 +100,20 @@ const ImportanceOfPrompting = () => {
     }
   };
 
+  // 이전 스크립트로 진행
+  const proceedToPrev = () => {
+    cancelAutoProceed();
+    const prevIndex = currentScriptIndex() - 1;
+    if (prevIndex >= 0) {
+      typingAnimation.resetSkipState();
+      setWasSkipped(false);
+      audioPlayback.stopAudio();
+      setTimeout(() => {
+        setCurrentScriptIndex(prevIndex);
+      }, 10);
+    }
+  };
+
   // 클릭 이벤트 핸들러 (다음 스크립트로 진행) - 선택적으로 사용 가능
   const handleClick = () => {
     if (currentScriptIndex() < importanceOfPromptingScripts.length - 1) {
@@ -122,12 +136,7 @@ const ImportanceOfPrompting = () => {
     onSecondSkip: () => {
       cancelAutoProceed(); // 자동 진행 타이머 취소
       audioPlayback.stopAudio();
-      // 마지막 스크립트라면 자동으로 다음 단계로 이동하지 않음 (다시듣기 버튼 표시)
-      if (currentScriptIndex() >= importanceOfPromptingScripts.length - 1) {
-        // 마지막 스크립트에서는 자동 진행하지 않음
-      } else {
-        proceedToNext();
-      }
+      // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
     },
   });
 
@@ -152,23 +161,7 @@ const ImportanceOfPrompting = () => {
     if (!wasSkipped() || !audioPlayback.isPlaying()) {
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
-          // 오디오 재생 완료 후 처리
-          if (scriptIndex < importanceOfPromptingScripts.length - 1) {
-            // 스킵을 했으면 0.5초 대기 후 자동 진행 (대기 중 추가 입력이 있으면 취소됨)
-            if (wasSkipped()) {
-              cancelAutoProceed(); // 기존 타이머 취소
-              autoProceedTimeout = setTimeout(() => {
-                proceedToNext();
-              }, 500);
-            } else {
-              // 스킵을 하지 않았으면 즉시 진행
-              proceedToNext();
-            }
-          } else {
-            // 마지막 스크립트의 음성이 끝나면 자동으로 다음 단계로 이동하지 않고
-            // '다시듣기' 버튼이 표시되도록 함 (버튼 클릭 시 다음 단계로 이동 가능)
-            // 자동 진행 없음 - 사용자가 '다시듣기' 또는 다음 단계로 이동 선택 가능
-          }
+          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
         },
       });
     }
@@ -260,7 +253,36 @@ const ImportanceOfPrompting = () => {
           </Show>
           <div class={styles.content}>
             <div class={styles.speechBubbleContainer}>
-              <SpeechBubble message={typingAnimation.displayedMessage()} size={600} />
+              <SpeechBubble 
+                message={typingAnimation.displayedMessage()} 
+                size={600}
+                showNavigation={true}
+                onNext={proceedToNext}
+                onPrev={proceedToPrev}
+                isComplete={() => {
+                  const script = currentScript();
+                  if (!script) return false;
+                  const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                  const isAudioComplete = !audioPlayback.isPlaying();
+                  // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+                  if (typingAnimation.isTypingSkipped() || wasSkipped()) {
+                    return isTypingComplete;
+                  }
+                  return isTypingComplete && isAudioComplete;
+                }}
+                canGoNext={() => {
+                  const script = currentScript();
+                  if (!script) return false;
+                  const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                  const isAudioComplete = !audioPlayback.isPlaying();
+                  // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+                  const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped()) 
+                    ? isTypingComplete 
+                    : (isTypingComplete && isAudioComplete);
+                  return isComplete && currentScriptIndex() < importanceOfPromptingScripts.length - 1;
+                }}
+                canGoPrev={() => currentScriptIndex() > 0}
+              />
             </div>
               <Show when={shouldShowCompareFlower()}>
               <img
@@ -339,18 +361,32 @@ const ImportanceOfPrompting = () => {
             </div>
           </div>
           <Show when={isLastScript() && (typingAnimation.displayedMessage().length === currentScript()?.script.length || wasSkipped())}>
-            <div class={styles.restartButtonContainer}>
+            <div style={{ display: 'flex', gap: '1rem', 'justify-content': 'center', margin: '2rem 0', 'position': 'absolute', 'top': '85%', 'z-index': 10 }}>
               <button
-                class={styles.restartButton}
                 onClick={restartFromBeginning}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  'border-radius': '8px',
+                  cursor: 'pointer',
+                  'font-size': '1rem',
+                }}
               >
                 다시듣기
               </button>
-            </div>
-            <div class={styles.nextButtonContainer}>
               <button
-                class={styles.nextButton}
                 onClick={goToNextStep}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  background: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  'border-radius': '8px',
+                  cursor: 'pointer',
+                  'font-size': '1rem',
+                }}
               >
                 넘어가기
               </button>

@@ -1,4 +1,4 @@
-import { onCleanup } from 'solid-js';
+import { onCleanup, createSignal } from 'solid-js';
 import { getS3TTSURL } from '../loading';
 
 export interface UseAudioPlaybackOptions {
@@ -20,6 +20,7 @@ export interface UseAudioPlaybackReturn {
  */
 export function useAudioPlayback(): UseAudioPlaybackReturn {
   let currentAudio: HTMLAudioElement | null = null;
+  const [isPlayingSignal, setIsPlayingSignal] = createSignal(false);
 
   const playAudio = (
     audioFile: string,
@@ -44,14 +45,26 @@ export function useAudioPlayback(): UseAudioPlaybackReturn {
       if (onLoaded) {
         onLoaded();
       }
-      currentAudio?.play().catch((error) => {
+      currentAudio?.play().then(() => {
+        setIsPlayingSignal(true);
+      }).catch((error) => {
         if (onError) {
           onError(error as any);
         }
+        setIsPlayingSignal(false);
       });
     });
 
+    currentAudio.addEventListener('play', () => {
+      setIsPlayingSignal(true);
+    });
+
+    currentAudio.addEventListener('pause', () => {
+      setIsPlayingSignal(false);
+    });
+
     currentAudio.addEventListener('ended', () => {
+      setIsPlayingSignal(false);
       if (onEnded) {
         onEnded();
       }
@@ -70,6 +83,7 @@ export function useAudioPlayback(): UseAudioPlaybackReturn {
   const pauseAudio = () => {
     if (currentAudio) {
       currentAudio.pause();
+      setIsPlayingSignal(false);
     }
   };
 
@@ -77,11 +91,12 @@ export function useAudioPlayback(): UseAudioPlaybackReturn {
     if (currentAudio) {
       currentAudio.pause();
       currentAudio = null;
+      setIsPlayingSignal(false);
     }
   };
 
   const isPlaying = () => {
-    return currentAudio !== null && !currentAudio.paused && !currentAudio.ended;
+    return isPlayingSignal();
   };
 
   onCleanup(() => {

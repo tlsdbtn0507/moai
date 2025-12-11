@@ -22,6 +22,7 @@ const IntroductionToAiAssistant = () => {
   const [isFadeOut, setIsFadeOut] = createSignal(false);
   const [displayBackgroundUrl, setDisplayBackgroundUrl] = createSignal(getS3ImageURL('4-2/maiCity.png'));
   const [displayCharacterUrl, setDisplayCharacterUrl] = createSignal(getS3ImageURL('4-2/pocketMai.png'));
+  const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
   const navigate = useNavigate();
   const params = useParams();
@@ -85,6 +86,7 @@ const IntroductionToAiAssistant = () => {
     if (nextIndex < introductionScripts.length) {
       typingAnimation.resetSkipState();
       setWasSkipped(false);
+      setCurrentPlayingScriptIndex(null); // 오디오 재생 인덱스 리셋
       audioPlayback.stopAudio();
       setTimeout(() => {
         setCurrentScriptIndex(nextIndex);
@@ -94,25 +96,37 @@ const IntroductionToAiAssistant = () => {
     }
   };
 
+  // 이전 스크립트로 진행
+  const proceedToPrev = () => {
+    cancelAutoProceed();
+    const prevIndex = currentScriptIndex() - 1;
+    if (prevIndex >= 0) {
+      typingAnimation.resetSkipState();
+      setWasSkipped(false);
+      setCurrentPlayingScriptIndex(null); // 오디오 재생 인덱스 리셋
+      audioPlayback.stopAudio();
+      setTimeout(() => {
+        setCurrentScriptIndex(prevIndex);
+      }, 10);
+    }
+  };
+
   // 스킵 컨트롤 훅
   useSkipControls({
     isTypingSkipped: typingAnimation.isTypingSkipped,
     onFirstSkip: () => {
       const script = currentScript();
       if (script) {
+        // 타이핑 애니메이션만 스킵하고, 오디오는 계속 재생되도록 함
         typingAnimation.skipTyping();
         typingAnimation.setDisplayedMessage(script.script);
-        setWasSkipped(true);
+        // wasSkipped는 설정하지 않음 - 오디오가 재생 중이면 계속 재생되도록
       }
     },
     onSecondSkip: () => {
       cancelAutoProceed();
       audioPlayback.stopAudio();
-      if (currentScriptIndex() >= introductionScripts.length - 1) {
-        // 마지막 스크립트에서는 자동 진행하지 않음
-      } else {
-        proceedToNext();
-      }
+      // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
     },
   });
 
@@ -156,11 +170,11 @@ const IntroductionToAiAssistant = () => {
     }
   });
 
-  // 스크립트 변경 시 처리
+  // 스크립트 변경 시 처리 (스크립트 인덱스만 추적)
   createEffect(() => {
+    const scriptIndex = currentScriptIndex();
     const script = currentScript();
     if (!script) return;
-    const scriptIndex = currentScriptIndex();
 
     // 캐릭터 이미지 업데이트
     if (script.maiPng) {
@@ -173,33 +187,23 @@ const IntroductionToAiAssistant = () => {
     }
 
     // 오디오 재생 로직
-    // 첫 번째 스킵 시에는 오디오가 이미 재생 중이므로 재생하지 않음
-    // 그 외의 경우에는 항상 재생 (스크립트가 변경되었으므로)
-    if (!wasSkipped() || !audioPlayback.isPlaying()) {
+    // 스크립트 인덱스가 변경되었을 때만 오디오 재생
+    // 같은 스크립트에 대해 오디오가 이미 재생 중이면 재생하지 않음
+    const isNewScript = currentPlayingScriptIndex() !== scriptIndex;
+    if (isNewScript) {
+      setCurrentPlayingScriptIndex(scriptIndex);
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
-          // 오디오 재생 완료 후 처리
-          if (scriptIndex < introductionScripts.length - 1) {
-            // 스킵을 했으면 0.5초 대기 후 자동 진행 (대기 중 추가 입력이 있으면 취소됨)
-            if (wasSkipped()) {
-              cancelAutoProceed(); // 기존 타이머 취소
-              autoProceedTimeout = setTimeout(() => {
-                proceedToNext();
-              }, 500);
-            } else {
-              // 스킵을 하지 않았으면 즉시 진행
-              proceedToNext();
-            }
-          } else {
-            // 마지막 스크립트의 음성이 끝나면 자동으로 다음 단계로 이동하지 않고
-            // '다시듣기' 버튼이 표시되도록 함
-          }
+          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
         },
       });
     }
 
     // 오디오 시작과 동시에 타이핑 애니메이션 시작
-    typingAnimation.startTyping(script.script);
+    // 타이핑 애니메이션이 스킵된 상태가 아니면 시작
+    if (!typingAnimation.isTypingSkipped()) {
+      typingAnimation.startTyping(script.script);
+    }
   });
 
   // 오디오 컨텍스트 활성화 함수
@@ -291,6 +295,33 @@ const IntroductionToAiAssistant = () => {
     return undefined;
   });
 
+  // 완료 여부 확인 (반응형)
+  const isComplete = createMemo(() => {
+    const script = currentScript();
+    if (!script) return false;
+    const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+    const isAudioComplete = !audioPlayback.isPlaying();
+    // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+    if (typingAnimation.isTypingSkipped() || wasSkipped()) {
+      return isTypingComplete;
+    }
+    return isTypingComplete && isAudioComplete;
+  });
+
+  // 다음 버튼 표시 여부
+  const shouldShowNextButton = createMemo(() => {
+    if (!isComplete()) return false;
+    const script = currentScript();
+    if (!script) return false;
+    return currentScriptIndex() < introductionScripts.length - 1;
+  });
+
+  // 이전 버튼 표시 여부
+  const shouldShowPrevButton = createMemo(() => {
+    if (!isComplete()) return false;
+    return currentScriptIndex() > 0;
+  });
+
   return (
     <Show when={isReady()} fallback={<LoadingSpinner />}>
       <div
@@ -299,7 +330,13 @@ const IntroductionToAiAssistant = () => {
           'background-image': `url(${displayBackgroundUrl()})`,
         }}
       >
-        <div class={styles.contentWrapper}>
+        <div 
+          class={styles.contentWrapper}
+          style={{
+            position: (currentScriptData()?.id && currentScriptData()!.id >= 3 && currentScriptData()!.id <= 8) ? 'absolute' : undefined,
+            top: (currentScriptData()?.id && currentScriptData()!.id >= 3 && currentScriptData()!.id <= 8) ? '80%' : undefined,
+          }}
+        >
           <Show when={currentScriptData()?.maiPng && !isFading()}>
             <img
               src={displayCharacterUrl()}
@@ -313,19 +350,82 @@ const IntroductionToAiAssistant = () => {
                 message={typingAnimation.displayedMessage()} 
                 size={800} 
                 type={speechBubbleType()}
+                showNavigation={true}
+                onNext={proceedToNext}
+                onPrev={proceedToPrev}
+                isComplete={() => {
+                  const script = currentScript();
+                  if (!script) return false;
+                  const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                  const isAudioComplete = !audioPlayback.isPlaying();
+                  // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+                  if (typingAnimation.isTypingSkipped() || wasSkipped()) {
+                    return isTypingComplete;
+                  }
+                  return isTypingComplete && isAudioComplete;
+                }}
+                canGoNext={() => {
+                  const script = currentScript();
+                  if (!script) return false;
+                  const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                  const isAudioComplete = !audioPlayback.isPlaying();
+                  // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+                  const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped()) 
+                    ? isTypingComplete 
+                    : (isTypingComplete && isAudioComplete);
+                  return isComplete && currentScriptIndex() < introductionScripts.length - 1;
+                }}
+                canGoPrev={() => currentScriptIndex() > 0}
+                scriptHistory={introductionScripts.slice(0, currentScriptIndex() + 1).map(script => ({
+                  id: script.id,
+                  script: script.script,
+                }))}
+                currentScriptIndex={currentScriptIndex()}
               />
             </div>
           </Show>
           
           <Show when={!currentScriptData()?.speechBubble && currentScriptData()?.scriptBgLine && !isFading()}>
-            <div class={`${styles.scriptBgLine} ${styles.fadeIn}`}>
+            <div class={`${styles.scriptBgLine} ${styles.fadeIn}`} style={{ position: 'relative' }}>
               {typingAnimation.displayedMessage()}
+              <Show when={shouldShowPrevButton()}>
+                <button
+                  onClick={proceedToPrev}
+                  class={styles.navButtonPrev}
+                >
+                  이전
+                </button>
+              </Show>
+              <Show when={shouldShowNextButton()}>
+                <button
+                  onClick={proceedToNext}
+                  class={styles.navButtonNext}
+                >
+                  다음
+                </button>
+              </Show>
             </div>
           </Show>
 
           <Show when={!currentScriptData()?.speechBubble && !currentScriptData()?.scriptBgLine && !isFading()}>
-            <div class={`${styles.plainText} ${styles.fadeIn}`}>
+            <div class={`${styles.plainText} ${styles.fadeIn}`} style={{ position: 'relative' }}>
               {typingAnimation.displayedMessage()}
+              <Show when={shouldShowPrevButton()}>
+                <button
+                  onClick={proceedToPrev}
+                  class={styles.navButtonPrev}
+                >
+                  이전
+                </button>
+              </Show>
+              <Show when={shouldShowNextButton()}>
+                <button
+                  onClick={proceedToNext}
+                  class={styles.navButtonNext}
+                >
+                  다음
+                </button>
+              </Show>
             </div>
           </Show>
         </div>
