@@ -18,6 +18,7 @@ const ImportanceOfPrompting = () => {
   const [characterImageUrl, setCharacterImageUrl] = createSignal(getS3ImageURL('1-3/pointingMai.png'));
   const [audioContextActivated, setAudioContextActivated] = createSignal(false);
   const [wasSkipped, setWasSkipped] = createSignal(false); // 스킵 상태 추적
+  const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null; // 자동 진행 타이머
   const navigate = useNavigate();
   const params = useParams();
@@ -88,6 +89,7 @@ const ImportanceOfPrompting = () => {
       // 스킵 상태 초기화 (다음 스크립트에서 다시 타이핑 애니메이션 가능하도록)
       typingAnimation.resetSkipState();
       setWasSkipped(false);
+      setCurrentPlayingScriptIndex(null);
       // 오디오 정지 (다음 스크립트 재생을 위해)
       audioPlayback.stopAudio();
       // 약간의 딜레이 후 스크립트 인덱스 변경 (오디오 정지가 완료되도록)
@@ -107,6 +109,7 @@ const ImportanceOfPrompting = () => {
     if (prevIndex >= 0) {
       typingAnimation.resetSkipState();
       setWasSkipped(false);
+      setCurrentPlayingScriptIndex(null);
       audioPlayback.stopAudio();
       setTimeout(() => {
         setCurrentScriptIndex(prevIndex);
@@ -156,9 +159,9 @@ const ImportanceOfPrompting = () => {
     setCharacterImageUrl(getS3ImageURL(script.maiPng));
 
     // 오디오 재생 로직
-    // 첫 번째 스킵 시에는 오디오가 이미 재생 중이므로 재생하지 않음
-    // 그 외의 경우에는 항상 재생 (스크립트가 변경되었으므로)
-    if (!wasSkipped() || !audioPlayback.isPlaying()) {
+    const isNewScript = currentPlayingScriptIndex() !== scriptIndex;
+    if (isNewScript) {
+      setCurrentPlayingScriptIndex(scriptIndex);
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
           // 자동 진행 제거 - 사용자가 버튼을 눌러야 함

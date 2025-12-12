@@ -23,6 +23,7 @@ const MakingAvatarsWithPrompting = () => {
   const [wasSkipped, setWasSkipped] = createSignal(false);
   const [audioFinishedForId3, setAudioFinishedForId3] = createSignal(false);
   const [restartTrigger, setRestartTrigger] = createSignal(0); // 재시작 트리거
+  const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
   
   const typingAnimation = useTypingAnimation({ typingSpeed: 150 });
@@ -91,6 +92,7 @@ const MakingAvatarsWithPrompting = () => {
       typingAnimation.resetSkipState();
       setWasSkipped(false);
       setAudioFinishedForId3(false); // 다음 단계로 넘어갈 때 상태 초기화
+      setCurrentPlayingScriptIndex(null);
       audioPlayback.stopAudio();
       setTimeout(() => {
         setCurrentScriptIndex(nextIndex);
@@ -109,6 +111,7 @@ const MakingAvatarsWithPrompting = () => {
     if (prevIndex >= 0) {
       typingAnimation.resetSkipState();
       setWasSkipped(false);
+      setCurrentPlayingScriptIndex(null);
       audioPlayback.stopAudio();
       setTimeout(() => {
         setCurrentScriptIndex(prevIndex);
@@ -162,8 +165,10 @@ const MakingAvatarsWithPrompting = () => {
       return;
     }
 
-    // 오디오 재생 로직
-    if (!wasSkipped() || !audioPlayback.isPlaying()) {
+    // 오디오 재생 로직 - 새로운 스크립트일 때만 재생
+    const isNewScript = currentPlayingScriptIndex() !== scriptIndex;
+    if (isNewScript) {
+      setCurrentPlayingScriptIndex(scriptIndex);
       // 스크립트가 변경되면 id 3의 오디오 종료 상태 초기화
       if (script.id === 3) {
         setAudioFinishedForId3(false);

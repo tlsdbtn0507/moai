@@ -9,8 +9,8 @@
             "title": "프롬프팅의 중요성",
             "steps": [
               { "id": "1", "type": "prelearning", "page": "DescribeImage", "title": "사전학습" },
-              { "id": "2", "type": "concept", "page": "ImportanceOfPrompting", "title": "개념 및 원리" },
-              { "id": "3", "type": "exploration", "page": "CompareImage", "title": "공통성 탐구" },
+              { "id": "2", "type": "exploration", "page": "CompareImage", "title": "공통성 탐구" },
+              { "id": "3", "type": "concept", "page": "ImportanceOfPrompting", "title": "개념 및 원리" },
               { "id": "4", "type": "practice", "page": "MakingAvatarsWithPrompting", "title": "실제 연습" },
               { "id": "5", "type": "review", "page": "AiFeedbackReview", "title": "마무리 및 AI 분석" }
             ]

@@ -230,9 +230,11 @@ export async function evaluatePrompts(
 "${characterPrompt}"
 
 각 프롬프트를 다음 세 가지 기준으로 평가해주세요:
-- 구체성 (Specificity): 구체적인 세부사항이 얼마나 포함되어 있는가? (1점: 추상적, 2점: 보통, 3점: 매우 구체적)
-- 명확성 (Clarity): AI가 이해하기 쉬운가? (1점: 모호함, 2점: 보통, 3점: 매우 명확)
-- 맥락성 (Contextuality): 맥락과 상황이 잘 전달되는가? (1점: 맥락 부족, 2점: 보통, 3점: 맥락 풍부)
+- 구체성 (Specificity): 구체적인 세부사항이 얼마나 포함되어 있는가? (2점: 보통, 3점: 매우 구체적) - 최소 2점부터 시작
+- 명확성 (Clarity): AI가 이해하기 쉬운가? (2점: 보통, 3점: 매우 명확) - 최소 2점부터 시작
+- 맥락성 (Contextuality): 맥락과 상황이 잘 전달되는가? (2점: 보통, 3점: 맥락 풍부) - 최소 2점부터 시작
+
+참고: 점수는 2점 또는 3점만 부여해주세요. 1점은 거의 주지 않도록 해주세요.
 
 각 항목에 대해 점수와 함께 친근하고 격려하는 톤의 피드백을 작성해주세요.
 피드백 형식 예시:
@@ -354,10 +356,10 @@ export async function evaluatePrompts(
         const avgClarity = Math.round((sunsetScores.clarity + characterScores.clarity) / 2);
         const avgContextuality = Math.round((sunsetScores.contextuality + characterScores.contextuality) / 2);
 
-        // 점수가 1-3 범위를 벗어나면 조정
-        const specificity = Math.max(1, Math.min(3, avgSpecificity));
-        const clarity = Math.max(1, Math.min(3, avgClarity));
-        const contextuality = Math.max(1, Math.min(3, avgContextuality));
+        // 점수가 1이면 2로 올리고, 2-3 범위로 조정 (1점은 거의 주지 않음)
+        const specificity = Math.max(2, Math.min(3, avgSpecificity < 2 ? 2 : avgSpecificity));
+        const clarity = Math.max(2, Math.min(3, avgClarity < 2 ? 2 : avgClarity));
+        const contextuality = Math.max(2, Math.min(3, avgContextuality < 2 ? 2 : avgContextuality));
 
         // 피드백 통합 (두 프롬프트의 피드백을 종합)
         const sunsetFeedback = sunsetScores.feedback || {

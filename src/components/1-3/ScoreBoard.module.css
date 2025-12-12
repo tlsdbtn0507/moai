@@ -172,8 +172,11 @@
   color: #5C3A21;
   font-size: 1.1rem;
   line-height: 1.6;
-  padding-top: 0.25rem;
   white-space: pre-line;
+  background-color: #ffffffba;
+    z-index: 10;
+    border-radius: 1rem;
+    padding: 0.5rem;
 }
 
 .feedbackDivider {

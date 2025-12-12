@@ -18,6 +18,7 @@ const LearningAiAssistant = () => {
   const [backgroundImageUrl, setBackgroundImageUrl] = createSignal(getS3ImageURL('4-2/maiCity.png'));
   const [audioContextActivated, setAudioContextActivated] = createSignal(false);
   const [wasSkipped, setWasSkipped] = createSignal(false);
+  const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
   const [isFading, setIsFading] = createSignal(false);
   const [isFadeOut, setIsFadeOut] = createSignal(false);
   const [displayBackgroundUrl, setDisplayBackgroundUrl] = createSignal(getS3ImageURL('4-2/maiCity.png'));
@@ -58,6 +59,7 @@ const LearningAiAssistant = () => {
     audioPlayback.stopAudio();
     typingAnimation.resetSkipState();
     setWasSkipped(false);
+    setCurrentPlayingScriptIndex(null);
     setCurrentScriptIndex(0);
   };
 
@@ -73,6 +75,7 @@ const LearningAiAssistant = () => {
     if (nextIndex < conceptStepScripts.length) {
       typingAnimation.resetSkipState();
       setWasSkipped(false);
+      setCurrentPlayingScriptIndex(null);
       audioPlayback.stopAudio();
       setTimeout(() => {
         setCurrentScriptIndex(nextIndex);
@@ -89,6 +92,7 @@ const LearningAiAssistant = () => {
     if (prevIndex >= 0) {
       typingAnimation.resetSkipState();
       setWasSkipped(false);
+      setCurrentPlayingScriptIndex(null);
       audioPlayback.stopAudio();
       setTimeout(() => {
         setCurrentScriptIndex(prevIndex);
@@ -104,7 +108,7 @@ const LearningAiAssistant = () => {
       if (script) {
         typingAnimation.skipTyping();
         typingAnimation.setDisplayedMessage(script.script);
-        setWasSkipped(true);
+        // wasSkipped는 설정하지 않음 - 오디오가 재생 중이면 계속 재생되도록
       }
     },
     onSecondSkip: () => {
@@ -160,11 +164,11 @@ const LearningAiAssistant = () => {
     }
   });
 
-  // 스크립트 변경 시 처리
+  // 스크립트 변경 시 처리 (스크립트 인덱스만 추적)
   createEffect(() => {
+    const scriptIndex = currentScriptIndex();
     const script = currentScript();
     if (!script) return;
-    const scriptIndex = currentScriptIndex();
 
     // 캐릭터 이미지 업데이트
     if (script.maiPng) {
@@ -178,8 +182,10 @@ const LearningAiAssistant = () => {
       setContentImageUrl(null);
     }
 
-    // 오디오 재생 로직
-    if (!wasSkipped() || !audioPlayback.isPlaying()) {
+    // 오디오 재생 로직 - 새로운 스크립트일 때만 재생
+    const isNewScript = currentPlayingScriptIndex() !== scriptIndex;
+    if (isNewScript) {
+      setCurrentPlayingScriptIndex(scriptIndex);
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
           // 자동 진행 제거 - 사용자가 버튼을 눌러야 함

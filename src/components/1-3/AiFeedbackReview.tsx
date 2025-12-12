@@ -33,6 +33,7 @@ const AiFeedbackReview = () => {
   const [showConfirmButton, setShowConfirmButton] = createSignal(false);
   const [scores, setScores] = createSignal<PromptScores | null>(null);
   const [isEvaluating, setIsEvaluating] = createSignal(false);
+  const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
   
   const typingAnimation = useTypingAnimation({ typingSpeed: 150 });
@@ -63,6 +64,7 @@ const AiFeedbackReview = () => {
     if (nextIndex < aiFeedbackReviewScripts.length) {
       typingAnimation.resetSkipState();
       setWasSkipped(false);
+      setCurrentPlayingScriptIndex(null);
       audioPlayback.stopAudio();
       setTimeout(() => {
         setCurrentScriptIndex(nextIndex);
@@ -77,6 +79,7 @@ const AiFeedbackReview = () => {
     if (prevIndex >= 0) {
       typingAnimation.resetSkipState();
       setWasSkipped(false);
+      setCurrentPlayingScriptIndex(null);
       audioPlayback.stopAudio();
       setTimeout(() => {
         setCurrentScriptIndex(prevIndex);
@@ -109,7 +112,9 @@ const AiFeedbackReview = () => {
     const scriptIndex = currentScriptIndex();
 
     // 오디오 재생 로직
-    if (!wasSkipped() || !audioPlayback.isPlaying()) {
+    const isNewScript = currentPlayingScriptIndex() !== scriptIndex;
+    if (isNewScript) {
+      setCurrentPlayingScriptIndex(scriptIndex);
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
           // 자동 진행 제거 - 사용자가 버튼을 눌러야 함

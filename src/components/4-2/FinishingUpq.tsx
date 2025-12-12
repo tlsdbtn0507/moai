@@ -33,6 +33,8 @@ const FinishingUpq = () => {
   const [showFeedbackScreen, setShowFeedbackScreen] = createSignal(false);
   const [feedbackAudioContextActivated, setFeedbackAudioContextActivated] = createSignal(false);
   const [feedbackWasSkipped, setFeedbackWasSkipped] = createSignal(false);
+  const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
+  const [currentPlayingFeedbackScriptIndex, setCurrentPlayingFeedbackScriptIndex] = createSignal<number | null>(null);
   const feedbackTypingAnimation = useTypingAnimation({ typingSpeed: 150 });
   const feedbackAudioPlayback = useAudioPlayback();
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -88,9 +90,11 @@ const FinishingUpq = () => {
 "${combinedResponses}"
 
 이 평가를 다음 세 가지 기준으로 평가해주세요:
-- 구체성 (Specificity): 구체적인 예시나 이유가 얼마나 포함되어 있는가? (1점: 추상적, 2점: 보통, 3점: 매우 구체적)
-- 명확성 (Clarity): 평가가 명확하고 이해하기 쉬운가? (1점: 모호함, 2점: 보통, 3점: 매우 명확)
-- 맥락성 (Contextuality): 각 비서의 특징과 상황을 고려한 분석인가? (1점: 맥락 부족, 2점: 보통, 3점: 맥락 풍부)
+- 구체성 (Specificity): 구체적인 예시나 이유가 얼마나 포함되어 있는가? (2점: 보통, 3점: 매우 구체적) - 최소 2점부터 시작
+- 명확성 (Clarity): 평가가 명확하고 이해하기 쉬운가? (2점: 보통, 3점: 매우 명확) - 최소 2점부터 시작
+- 맥락성 (Contextuality): 각 비서의 특징과 상황을 고려한 분석인가? (2점: 보통, 3점: 맥락 풍부) - 최소 2점부터 시작
+
+참고: 점수는 2점 또는 3점만 부여해주세요. 1점은 거의 주지 않도록 해주세요.
 
 각 항목에 대해 점수와 함께 친근하고 격려하는 톤의 피드백을 작성해주세요.
 
@@ -145,10 +149,13 @@ const FinishingUpq = () => {
         };
       }
 
-      // 점수가 1-3 범위를 벗어나면 조정
-      const specificity = Math.max(1, Math.min(3, parsedResponse.specificity || 2));
-      const clarity = Math.max(1, Math.min(3, parsedResponse.clarity || 2));
-      const contextuality = Math.max(1, Math.min(3, parsedResponse.contextuality || 2));
+      // 점수가 1이면 2로 올리고, 2-3 범위로 조정 (1점은 거의 주지 않음)
+      const rawSpecificity = parsedResponse.specificity || 2;
+      const rawClarity = parsedResponse.clarity || 2;
+      const rawContextuality = parsedResponse.contextuality || 2;
+      const specificity = Math.max(2, Math.min(3, rawSpecificity < 2 ? 2 : rawSpecificity));
+      const clarity = Math.max(2, Math.min(3, rawClarity < 2 ? 2 : rawClarity));
+      const contextuality = Math.max(2, Math.min(3, rawContextuality < 2 ? 2 : rawContextuality));
 
       return {
         specificity,
@@ -229,6 +236,7 @@ const FinishingUpq = () => {
     if (nextIndex < aiFeedbackReviewScripts.length) {
       feedbackTypingAnimation.resetSkipState();
       setFeedbackWasSkipped(false);
+      setCurrentPlayingFeedbackScriptIndex(null);
       feedbackAudioPlayback.stopAudio();
       setTimeout(() => {
         setFeedbackScriptIndex(nextIndex);
@@ -243,6 +251,7 @@ const FinishingUpq = () => {
     if (prevIndex >= 0) {
       feedbackTypingAnimation.resetSkipState();
       setFeedbackWasSkipped(false);
+      setCurrentPlayingFeedbackScriptIndex(null);
       feedbackAudioPlayback.stopAudio();
       setTimeout(() => {
         setFeedbackScriptIndex(prevIndex);
@@ -258,7 +267,7 @@ const FinishingUpq = () => {
       if (script) {
         feedbackTypingAnimation.skipTyping();
         feedbackTypingAnimation.setDisplayedMessage(script.script);
-        setFeedbackWasSkipped(true);
+        // feedbackWasSkipped는 설정하지 않음 - 오디오가 재생 중이면 계속 재생되도록
       }
     },
     onSecondSkip: () => {
@@ -268,16 +277,18 @@ const FinishingUpq = () => {
     },
   });
 
-  // 피드백 스크립트 변경 시 처리
+  // 피드백 스크립트 변경 시 처리 (스크립트 인덱스만 추적)
   createEffect(() => {
     if (!showFeedbackScreen()) return;
     
+    const scriptIndex = feedbackScriptIndex();
     const script = feedbackCurrentScript();
     if (!script) return;
-    const scriptIndex = feedbackScriptIndex();
 
-    // 오디오 재생 로직
-    if (!feedbackWasSkipped() || !feedbackAudioPlayback.isPlaying()) {
+    // 오디오 재생 로직 - 새로운 스크립트일 때만 재생
+    const isNewScript = currentPlayingFeedbackScriptIndex() !== scriptIndex;
+    if (isNewScript) {
+      setCurrentPlayingFeedbackScriptIndex(scriptIndex);
       feedbackAudioPlayback.playAudio(script.voice, {
         onEnded: () => {
           // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
@@ -336,6 +347,7 @@ const FinishingUpq = () => {
     if (nextIndex < finishingUpqScripts.length) {
       typingAnimation.resetSkipState();
       setWasSkipped(false);
+      setCurrentPlayingScriptIndex(null);
       audioPlayback.stopAudio();
       setTimeout(() => {
         setCurrentScriptIndex(nextIndex);
@@ -352,6 +364,7 @@ const FinishingUpq = () => {
     if (prevIndex >= 0) {
       typingAnimation.resetSkipState();
       setWasSkipped(false);
+      setCurrentPlayingScriptIndex(null);
       audioPlayback.stopAudio();
       setTimeout(() => {
         setCurrentScriptIndex(prevIndex);
@@ -367,7 +380,7 @@ const FinishingUpq = () => {
       if (script) {
         typingAnimation.skipTyping();
         typingAnimation.setDisplayedMessage(script.script);
-        setWasSkipped(true);
+        // wasSkipped는 설정하지 않음 - 오디오가 재생 중이면 계속 재생되도록
       }
     },
     onSecondSkip: () => {
@@ -387,19 +400,21 @@ const FinishingUpq = () => {
     }
   });
 
-  // 스크립트 변경 시 처리
+  // 스크립트 변경 시 처리 (스크립트 인덱스만 추적)
   createEffect(() => {
+    const scriptIndex = currentScriptIndex();
     const script = currentScript();
     if (!script) return;
-    const scriptIndex = currentScriptIndex();
 
     // 캐릭터 이미지 업데이트
     if (script.maiPng) {
       setCharacterImageUrl(getS3ImageURL(script.maiPng));
     }
 
-    // 오디오 재생 로직
-    if (!wasSkipped() || !audioPlayback.isPlaying()) {
+    // 오디오 재생 로직 - 새로운 스크립트일 때만 재생
+    const isNewScript = currentPlayingScriptIndex() !== scriptIndex;
+    if (isNewScript) {
+      setCurrentPlayingScriptIndex(scriptIndex);
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
           // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
