@@ -44,11 +44,59 @@ const ImportanceOfPrompting = () => {
     return script && script.id >= 5 && script.id <= 7;
   };
 
-
   const shouldShowGoodPromptExplanation = () => {
     const script = currentScript();
     return script && script.id >= 11;
   }
+
+  // 묶음 내부 스크립트인지 확인 (4-5, 6-7, 9-10, 12-13-14)
+  const isInGroup = () => {
+    const script = currentScript();
+    if (!script) return false;
+    const id = script.id;
+    return (id === 4 || id === 5) || // 묶음 1: 4-5
+           (id === 6 || id === 7) || // 묶음 2: 6-7
+           (id === 9 || id === 10) || // 묶음 3: 9-10
+           (id === 12 || id === 13 || id === 14); // 묶음 4: 12-13-14
+  };
+
+  // 묶음의 첫 번째 스크립트인지 확인 (자동 진행이 필요한 스크립트)
+  // 묶음 12-13-14의 경우 12와 13 모두 자동 진행 필요
+  const shouldAutoProceed = () => {
+    const script = currentScript();
+    return script && (script.id === 4 || script.id === 6 || script.id === 9 || script.id === 12 || script.id === 13);
+  };
+
+  // 묶음의 마지막 스크립트인지 확인
+  const isLastInGroup = () => {
+    const script = currentScript();
+    if (!script) return false;
+    const id = script.id;
+    return id === 5 || id === 7 || id === 10 || id === 14;
+  };
+
+  // 묶음 시작 전 스크립트 인덱스 찾기
+  const getGroupStartPrevIndex = () => {
+    const script = currentScript();
+    if (!script) return -1;
+    const id = script.id;
+    
+    // 각 묶음의 시작 전 인덱스 찾기
+    if (id === 5) {
+      // 묶음 4-5의 시작 전은 3
+      return importanceOfPromptingScripts.findIndex(s => s.id === 3);
+    } else if (id === 7) {
+      // 묶음 6-7의 시작 전은 5
+      return importanceOfPromptingScripts.findIndex(s => s.id === 5);
+    } else if (id === 10) {
+      // 묶음 9-10의 시작 전은 8
+      return importanceOfPromptingScripts.findIndex(s => s.id === 8);
+    } else if (id === 14) {
+      // 묶음 12-13-14의 시작 전은 11
+      return importanceOfPromptingScripts.findIndex(s => s.id === 11);
+    }
+    return -1;
+  };
 
 
   // 자동 진행 타이머 취소
@@ -73,6 +121,7 @@ const ImportanceOfPrompting = () => {
     audioPlayback.stopAudio(); // 오디오 정지
     typingAnimation.resetSkipState(); // 스킵 상태 초기화
     setWasSkipped(false); // 스킵 상태 초기화
+    setCurrentPlayingScriptIndex(null);
     setCurrentScriptIndex(0); // 첫 번째 스크립트로 리셋
   };
 
@@ -105,6 +154,23 @@ const ImportanceOfPrompting = () => {
   // 이전 스크립트로 진행
   const proceedToPrev = () => {
     cancelAutoProceed();
+    
+    // 묶음의 마지막 스크립트면 묶음 시작 전으로 이동
+    if (isLastInGroup()) {
+      const groupStartPrevIndex = getGroupStartPrevIndex();
+      if (groupStartPrevIndex >= 0) {
+        typingAnimation.resetSkipState();
+        setWasSkipped(false);
+        setCurrentPlayingScriptIndex(null);
+        audioPlayback.stopAudio();
+        setTimeout(() => {
+          setCurrentScriptIndex(groupStartPrevIndex);
+        }, 10);
+      }
+      return;
+    }
+    
+    // 일반적인 이전 스크립트로 이동
     const prevIndex = currentScriptIndex() - 1;
     if (prevIndex >= 0) {
       typingAnimation.resetSkipState();
@@ -132,8 +198,7 @@ const ImportanceOfPrompting = () => {
       if (script) {
         typingAnimation.skipTyping();
         typingAnimation.setDisplayedMessage(script.script);
-        setWasSkipped(true); // 스킵 상태 표시
-        // cancelAutoProceed(); // 자동 진행 취소
+        // wasSkipped는 설정하지 않음 - 오디오가 재생 중이면 계속 재생되도록
       }
     },
     onSecondSkip: () => {
@@ -171,6 +236,51 @@ const ImportanceOfPrompting = () => {
 
     // 오디오 시작과 동시에 타이핑 애니메이션 시작
     typingAnimation.startTyping(script.script);
+  });
+
+  // 자동 진행 로직: 타이핑과 오디오가 완료되면 자동으로 다음 스크립트로 진행
+  createEffect(() => {
+    if (!shouldAutoProceed()) {
+      // 자동 진행이 필요없는 경우 기존 타이머 취소
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+    
+    const script = currentScript();
+    if (!script) return;
+
+    const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+    const isAudioComplete = !audioPlayback.isPlaying();
+    
+    // 타이핑과 오디오가 모두 완료되었을 때만 자동 진행
+    if (isTypingComplete && isAudioComplete) {
+      // 이미 자동 진행이 예약되어 있으면 무시
+      if (autoProceedTimeout) return;
+      
+      // 즉시 자동 진행 (묶음 내에서는 딜레이 없음)
+      autoProceedTimeout = setTimeout(() => {
+        const nextIndex = currentScriptIndex() + 1;
+        if (nextIndex < importanceOfPromptingScripts.length) {
+          typingAnimation.resetSkipState();
+          setWasSkipped(false);
+          setCurrentPlayingScriptIndex(null);
+          audioPlayback.stopAudio();
+          setTimeout(() => {
+            setCurrentScriptIndex(nextIndex);
+          }, 10);
+        }
+        autoProceedTimeout = null;
+      }, 0); // 즉시 자동 진행
+    } else {
+      // 아직 완료되지 않았으면 기존 타이머 취소
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+    }
   });
 
   // 오디오 컨텍스트 활성화 함수
@@ -276,6 +386,12 @@ const ImportanceOfPrompting = () => {
                 canGoNext={() => {
                   const script = currentScript();
                   if (!script) return false;
+                  
+                  // 자동 진행이 필요한 스크립트는 다음 버튼을 표시하지 않음
+                  if (shouldAutoProceed()) {
+                    return false;
+                  }
+                  
                   const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
                   const isAudioComplete = !audioPlayback.isPlaying();
                   // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
@@ -284,7 +400,20 @@ const ImportanceOfPrompting = () => {
                     : (isTypingComplete && isAudioComplete);
                   return isComplete && currentScriptIndex() < importanceOfPromptingScripts.length - 1;
                 }}
-                canGoPrev={() => currentScriptIndex() > 0}
+                canGoPrev={() => {
+                  // 묶음의 첫 번째 스크립트면 이전 버튼 숨김
+                  if (shouldAutoProceed()) {
+                    return false;
+                  }
+                  
+                  // 묶음의 마지막 스크립트면 묶음 시작 전으로 이동 가능
+                  if (isLastInGroup()) {
+                    return getGroupStartPrevIndex() >= 0;
+                  }
+                  
+                  // 일반적인 경우
+                  return currentScriptIndex() > 0;
+                }}
               />
             </div>
               <Show when={shouldShowCompareFlower()}>
@@ -364,32 +493,10 @@ const ImportanceOfPrompting = () => {
             </div>
           </div>
           <Show when={isLastScript() && (typingAnimation.displayedMessage().length === currentScript()?.script.length || wasSkipped())}>
-            <div style={{ display: 'flex', gap: '1rem', 'justify-content': 'center', margin: '2rem 0', 'position': 'absolute', 'top': '85%', 'z-index': 10 }}>
-              <button
-                onClick={restartFromBeginning}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  background: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  'border-radius': '8px',
-                  cursor: 'pointer',
-                  'font-size': '1rem',
-                }}
-              >
-                다시듣기
-              </button>
+            <div class={styles.nextButtonContainer}>
               <button
                 onClick={goToNextStep}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  background: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  'border-radius': '8px',
-                  cursor: 'pointer',
-                  'font-size': '1rem',
-                }}
+                class={styles.nextButton}
               >
                 넘어가기
               </button>
