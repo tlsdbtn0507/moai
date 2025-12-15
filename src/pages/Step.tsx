@@ -15,7 +15,6 @@ import MakingOwnAiAssistant from '../components/4-2/MakingOwnAiAssistant';
 import FinishingUpq from '../components/4-2/FinishingUpq';
 import DetermineInfo from '../components/2-7/DetermineInfo';
 import DetermineInfoConcept from '../components/2-7/DetermineInfoConcept';
-import DetermineInfoExploration from '../components/2-7/DetermineInfoExploration';
 import DetermineInfoPractice from '../components/2-7/DetermineInfoPractice';
 import DetermineInfoReview from '../components/2-7/DetermineInfoReview';
 
@@ -32,7 +31,6 @@ const componentRegistry = {
   FinishingUpq,
   DetermineInfo,
   DetermineInfoConcept,
-  DetermineInfoExploration,
   DetermineInfoPractice,
   DetermineInfoReview,
 };

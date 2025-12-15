@@ -319,7 +319,7 @@ const LearningAiAssistant = () => {
             <div class={`${styles.speechBubbleWrapper} ${styles.fadeIn}`}>
               <SpeechBubble 
                 message={typingAnimation.displayedMessage()} 
-                size={800}
+                size={600}
                 showNavigation={true}
                 onNext={proceedToNext}
                 onPrev={proceedToPrev}
@@ -355,12 +355,6 @@ const LearningAiAssistant = () => {
 
         <Show when={isLastScript() && (typingAnimation.displayedMessage().length === currentScript()?.script.length || wasSkipped())}>
           <div class={styles.buttonContainer}>
-            <button
-              onClick={restartFromBeginning}
-              class={`${styles.button} ${styles.buttonSecondary}`}
-            >
-              처음부터 다시듣기
-            </button>
             <button
               onClick={goToNextStep}
               class={`${styles.button} ${styles.buttonPrimary}`}

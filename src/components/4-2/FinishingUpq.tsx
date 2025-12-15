@@ -64,7 +64,7 @@ const FinishingUpq = () => {
   const evaluateCompareAiAssistantPrompts = async (): Promise<PromptScores> => {
     // 로컬스토리지에서 데이터 가져오기
     const selections = getAllCardSelections();
-    
+
     // 모든 응답을 하나로 합치기 (reason만 추출)
     const reasons = [1, 2, 3]
       .map(cardId => selections[cardId]?.reason || '')

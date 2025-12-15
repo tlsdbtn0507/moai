@@ -117,7 +117,8 @@
 }
 
 .characterRight {
-  right: 2rem;
+  /* right: 2rem; */
+  left:43rem;
   /* top: 50%; */
   /* transform: translateY(-50%); */
 }

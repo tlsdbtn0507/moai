@@ -158,7 +158,7 @@ const CompareAiAssistantDetail = (props: CompareAiAssistantDetailProps) => {
                   >
                     {isCurrentCharacterCompleted() ? '이미 확인함' : '비교 완료'}
                   </button>
-                </div>
+                  </div>
                 </div>
               </div>
 

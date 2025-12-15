@@ -1,140 +1,90 @@
-import { Show, onMount, createSignal, createEffect, onCleanup } from 'solid-js';
+import { Show, onMount, createSignal, createEffect, onCleanup, createMemo, type JSX } from 'solid-js';
 import { useNavigate, useParams } from '@solidjs/router';
 import { getS3ImageURL, preloadImages } from '../../utils/loading';
 import { SpeechBubble } from '../SpeechBubble';
 import { LoadingSpinner } from '../LoadingSpinner';
 import pageContainerStyles from '../../styles/PageContainer.module.css';
-import { useTypingAnimation } from '../../utils/hooks/useTypingAnimation';
-import { useAudioPlayback } from '../../utils/hooks/useAudioPlayback';
-import { useSkipControls } from '../../utils/hooks/useSkipControls';
-
-// 임시 스크립트 데이터 (나중에 별도 파일로 분리 가능)
-const determineInfoConceptScripts = [
-  {
-    id: 1,
-    script: 'AI가 제공하는 정보의 출처를 판단하는 것은 매우 중요해.',
-    voice: '2-7/Concept_1.mp3',
-    maiPng: '2-7/mai.png',
-    title: '정보 출처 판단의 중요성',
-    concept: 'AI가 제공하는 정보는 항상 정확하지 않을 수 있으므로, 출처를 확인하고 신뢰성을 평가해야 합니다.',
-  },
-  {
-    id: 2,
-    script: '정보의 출처를 확인하면 더 정확한 답을 얻을 수 있어.',
-    voice: '2-7/Concept_2.mp3',
-    maiPng: '2-7/mai.png',
-    title: '출처 확인의 필요성',
-    concept: '정보의 출처를 확인함으로써 정보의 신뢰성과 정확성을 판단할 수 있습니다.',
-  },
-];
+import styles from './DetermineInfoConcept.module.css';
+import { conceptScripts } from '../../data/scripts/2-7';
+import { useMoaiConversation } from '../../utils/hooks/useMoaiConversation';
 
 const DetermineInfoConcept = () => {
   const [isReady, setIsReady] = createSignal(false);
-  const [currentScriptIndex, setCurrentScriptIndex] = createSignal(0);
-  const [currentTitle, setCurrentTitle] = createSignal<string | undefined>(undefined);
-  const [currentConcept, setCurrentConcept] = createSignal(determineInfoConceptScripts[0]?.concept || '');
-  const [characterImageUrl, setCharacterImageUrl] = createSignal(getS3ImageURL('2-7/mai.png'));
   const [audioContextActivated, setAudioContextActivated] = createSignal(false);
-  const [wasSkipped, setWasSkipped] = createSignal(false);
-  let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
+  const [isModalOpen, setIsModalOpen] = createSignal(false);
+  const [currentTitle, setCurrentTitle] = createSignal<string | undefined>(conceptScripts[0]?.titleSection?.title);
+  const [currentConcept, setCurrentConcept] = createSignal(conceptScripts[0]?.titleSection?.description || '');
+  const [currentContent, setCurrentContent] = createSignal<string | undefined>(
+    conceptScripts[0]?.contentPic ? getS3ImageURL(conceptScripts[0].contentPic!) : undefined
+  );
+  const [characterImageUrl, setCharacterImageUrl] = createSignal(
+    getS3ImageURL(conceptScripts[0]?.maiPic || '2-7/mai.png')
+  );
   const navigate = useNavigate();
   const params = useParams();
-  
-  const typingAnimation = useTypingAnimation({ typingSpeed: 150 });
-  const audioPlayback = useAudioPlayback();
 
-  const currentScript = () => determineInfoConceptScripts[currentScriptIndex()];
+  // voiceUrl -> voice 필드로 변환하여 훅에 전달
+  const conversationScripts = createMemo(() =>
+    conceptScripts.map((s) => ({
+      ...s,
+      voice: s.voiceUrl,
+    }))
+  );
 
-  const cancelAutoProceed = () => {
-    if (autoProceedTimeout) {
-      clearTimeout(autoProceedTimeout);
-      autoProceedTimeout = null;
-    }
-  };
-
-  const goToNextStep = () => {
-    const worldId = params.worldId || '2';
-    const classId = params.classId || '7';
-    const nextStepId = '3';
-    navigate(`/${worldId}/${classId}/${nextStepId}`);
-  };
-
-  const restartFromBeginning = () => {
-    cancelAutoProceed();
-    audioPlayback.stopAudio();
-    typingAnimation.resetSkipState();
-    setWasSkipped(false);
-    setCurrentScriptIndex(0);
-  };
-
-  const isLastScript = () => {
-    return currentScriptIndex() >= determineInfoConceptScripts.length - 1;
-  };
-
-  const proceedToNext = () => {
-    cancelAutoProceed();
-    const nextIndex = currentScriptIndex() + 1;
-    if (nextIndex < determineInfoConceptScripts.length) {
-      typingAnimation.resetSkipState();
-      setWasSkipped(false);
-      audioPlayback.stopAudio();
-      setTimeout(() => {
-        setCurrentScriptIndex(nextIndex);
-      }, 10);
-    } else {
-      goToNextStep();
-    }
-  };
-
-  const proceedToPrev = () => {
-    cancelAutoProceed();
-    const prevIndex = currentScriptIndex() - 1;
-    if (prevIndex >= 0) {
-      typingAnimation.resetSkipState();
-      setWasSkipped(false);
-      audioPlayback.stopAudio();
-      setTimeout(() => {
-        setCurrentScriptIndex(prevIndex);
-      }, 10);
-    }
-  };
-
-  // 스킵 컨트롤 훅 (컴포넌트 레벨에서 호출)
-  useSkipControls({
-    isTypingSkipped: typingAnimation.isTypingSkipped,
-    onFirstSkip: () => {
-      const script = currentScript();
-      if (script) {
-        typingAnimation.skipTyping();
-        typingAnimation.setDisplayedMessage(script.script);
-        setWasSkipped(true);
-      }
+  const conversation = useMoaiConversation(
+    () => conversationScripts() as any,
+    () => {
+      const worldId = params.worldId || '2';
+      const classId = params.classId || '7';
+      const nextStepId = '3';
+      navigate(`/${worldId}/${classId}/${nextStepId}`);
     },
-    onSecondSkip: () => {
-      cancelAutoProceed();
-      audioPlayback.stopAudio();
-      // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
-    },
+    { typingSpeed: 150 }
+  );
+
+  // 스크립트 변화에 따라 제목/개념/이미지 반영
+  createEffect(() => {
+    const script = conversation.currentScript();
+    if (!script) return;
+    setCurrentTitle(script.titleSection?.title);
+    setCurrentConcept(script.titleSection?.description || '');
+    setCharacterImageUrl(getS3ImageURL(script.maiPic));
+    setCurrentContent(script.contentPic ? getS3ImageURL(script.contentPic) : undefined);
   });
 
-  createEffect(() => {
-    const script = currentScript();
-    if (!script) return;
-    const scriptIndex = currentScriptIndex();
-
-    setCurrentTitle(script.title);
-    setCurrentConcept(script.concept);
-    setCharacterImageUrl(getS3ImageURL(script.maiPng));
-
-    if (!wasSkipped() || !audioPlayback.isPlaying()) {
-      audioPlayback.playAudio(script.voice, {
-        onEnded: () => {
-          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
-        },
-      });
+  // 컨텐츠 이미지 위치 동적 스타일
+  const contentPositionStyle = createMemo<JSX.CSSProperties>(() => {
+    const script = conversation.currentScript();
+    if (!script || !script.contentPic) return {};
+    if (script.id === 4) {
+      return { position: 'absolute', top: '13rem' };
     }
+    if (script.id === 5) {
+      return { position: 'absolute', top: '13rem', left: '14rem' };
+    }
+    if (script.id >= 6 && script.id <= 8) {
+      return { position: 'absolute', top: '12rem', left: '14rem' };
+    }
+    if (script.id >= 22 && script.id <= 25) {
+      return { position: 'absolute', top: '8rem' };
+    }
+    if (script.id === 27 || script.id === 28) {
+      return { position: 'absolute', top: '10rem' };
+    }
+    return {};
+  });
 
-    typingAnimation.startTyping(script.script);
+  // 컨텐츠 이미지 크기 동적 스타일
+  const contentImageStyle = createMemo<JSX.CSSProperties>(() => {
+    const script = conversation.currentScript();
+    if (!script) return {};
+    if (script.id >= 22 && script.id <= 25) {
+      return { width: '700px', maxWidth: '100%', height: 'auto' };
+    }
+    if (script.id === 27 || script.id === 28) {
+      return { width: '750px', maxWidth: '100%', height: 'auto' };
+    }
+    return {};
   });
 
   const activateAudioContext = () => {
@@ -147,18 +97,25 @@ const DetermineInfoConcept = () => {
       emptyAudio.pause();
       setAudioContextActivated(true);
       setTimeout(() => {
-        setCurrentScriptIndex(0);
+        // 오디오 컨텍스트 활성화 후 첫 스크립트 시작
+        conversation.proceedToPrev(); // no-op 유지
       }, 100);
     }).catch(() => {
       setAudioContextActivated(true);
       setTimeout(() => {
-        setCurrentScriptIndex(0);
+        conversation.proceedToPrev(); // no-op 유지
       }, 100);
     });
   };
 
   onMount(async () => {
-    const imageUrls = determineInfoConceptScripts.map(script => getS3ImageURL(script.maiPng));
+    const imageUrls = conceptScripts
+      .map(script => [
+        script.maiPic ? getS3ImageURL(script.maiPic) : null,
+        script.contentPic ? getS3ImageURL(script.contentPic) : null,
+      ])
+      .flat()
+      .filter(Boolean) as string[];
     try {
       await preloadImages(imageUrls);
       setIsReady(true);
@@ -183,131 +140,61 @@ const DetermineInfoConcept = () => {
   });
 
   onCleanup(() => {
-    cancelAutoProceed();
+    // 별도 타이머 없음
   });
 
   return (
     <Show when={isReady()} fallback={<LoadingSpinner />}>
-      <div
-        class={pageContainerStyles.container}
-        style={{
-          position: 'relative',
-          'background-color': '#A9E0FF',
-          'background-size': 'cover',
-          'background-position': 'center',
-          display: 'flex',
-          'align-items': 'center',
-          'flex-direction': 'column-reverse',
-          padding: '1rem 2rem 1rem',
-        }}
-      >
-        <div style={{
-          position: 'absolute',
-          top: '10%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '80%',
-          'max-width': '800px',
-          background: 'white',
-          padding: '2rem',
-          'border-radius': '16px',
-          'box-shadow': '0 4px 20px rgba(0,0,0,0.1)',
-        }}>
-          <Show when={currentTitle()} fallback={<h1 style={{ 'font-size': '2rem', margin: '0 0 1rem 0' }}>정보 출처 판단</h1>}>
-            <h1 style={{ 'font-size': '2rem', margin: '0 0 1rem 0' }}>{currentTitle()}</h1>
-          </Show>
+      <div class={`${pageContainerStyles.container} ${styles.mainContainer}`}>
+        <div class={styles.contentCard}>
+          <p class={styles.titleBadge}>AI 정보 출처 판단하기</p>
+
           <Show when={currentConcept()}>
-            <div style={{ 
-              display: 'flex', 
-              'flex-direction': 'column', 
-              gap: '0.5rem',
-              padding: '1rem',
-              background: '#f0f8ff',
-              'border-radius': '8px',
-            }}>
-              <span style={{ 'font-weight': 'bold', 'font-size': '1.2rem' }}>개념</span>
-              <span style={{ 'font-size': '1rem' }}>{currentConcept()}</span>
+            <div class={styles.conceptBox}>
+              <span class={styles.conceptTitle}>개념</span>
+              <span class={styles.conceptText}>{currentConcept()}</span>
             </div>
           </Show>
-          <div style={{ 
-            position: 'relative',
-            margin: '2rem 0',
-            'min-height': '200px',
-          }}>
-            <div style={{
-              position: 'absolute',
-              bottom: '0',
-              left: '60%',
-            }}>
+
+          <Show when={currentContent()}>
+            <div class={styles.contentBox} style={contentPositionStyle()}>
               <img
-                src={characterImageUrl()}
-                alt="MAI"
-                style={{
-                  width: '200px',
-                  height: 'auto',
-                }}
+                src={currentContent()}
+                alt="Content"
+                class={styles.contentImage}
+                style={contentImageStyle()}
               />
             </div>
+          </Show>
+
+          <div class={styles.speechArea}>
+            <div class={styles.characterImageWrapper}>
+              <img src={characterImageUrl()} alt="MAI" class={styles.characterImage} />
+            </div>
             <SpeechBubble 
-              message={typingAnimation.displayedMessage()} 
+              message={conversation.displayedMessage()} 
               size={600}
               showNavigation={true}
-              onNext={proceedToNext}
-              onPrev={proceedToPrev}
+              onNext={conversation.proceedToNext}
+              onPrev={conversation.proceedToPrev}
+              scriptHistory={conversationScripts().map((s) => ({ id: s.id, script: s.script }))}
+              currentScriptIndex={conversation.currentScriptIndex()}
+              onModalStateChange={setIsModalOpen}
               isComplete={() => {
-                const script = currentScript();
-                if (!script) return false;
-                // 타이핑 애니메이션과 음성 재생이 완료되었는지 확인
-                const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
-                const isAudioComplete = !audioPlayback.isPlaying();
-                // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
-                if (typingAnimation.isTypingSkipped() || wasSkipped()) {
-                  return isTypingComplete;
-                }
-                return isTypingComplete && isAudioComplete;
+                return conversation.isComplete();
               }}
               canGoNext={() => {
-                const script = currentScript();
-                if (!script) return false;
-                // 타이핑 애니메이션과 음성 재생이 완료되었는지 확인
-                const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
-                const isAudioComplete = !audioPlayback.isPlaying();
-                // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
-                const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped()) 
-                  ? isTypingComplete 
-                  : (isTypingComplete && isAudioComplete);
-                return isComplete && currentScriptIndex() < determineInfoConceptScripts.length - 1;
+                if (conversation.isLastScript()) return false;
+                return conversation.isComplete();
               }}
-              canGoPrev={() => currentScriptIndex() > 0}
+              canGoPrev={() => conversation.currentScriptIndex() > 0}
             />
           </div>
-          <Show when={isLastScript() && (typingAnimation.displayedMessage().length === currentScript()?.script.length || wasSkipped())}>
-            <div style={{ display: 'flex', gap: '1rem', 'justify-content': 'center', margin: '2rem 0' }}>
+          <Show when={conversation.isLastScript() && conversation.isComplete() && !isModalOpen()}>
+            <div class={styles.buttonGroup}>
               <button
-                onClick={restartFromBeginning}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  background: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  'border-radius': '8px',
-                  cursor: 'pointer',
-                  'font-size': '1rem',
-                }}
-              >
-                다시듣기
-              </button>
-              <button
-                onClick={goToNextStep}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  background: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  'border-radius': '8px',
-                  cursor: 'pointer',
-                  'font-size': '1rem',
-                }}
+                onClick={() => navigate('/2/7/3')}
+                class={`${styles.primaryButton} ${styles.goNextButton}`}
               >
                 넘어가기
               </button>

@@ -125,7 +125,7 @@
 .scriptHistoryButton {
   position: absolute;
   top: 0.5rem;
-  right: 0.5rem;
+  right: 1rem;
   width: 36px;
   height: 36px;
   background: rgba(255, 255, 255, 0.9);

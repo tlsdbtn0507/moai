@@ -27,9 +27,8 @@
             "steps": [
               {"id": "1", "type": "prelearning", "page": "DetermineInfo", "title": "사전학습" },
               {"id": "2", "type": "concept", "page": "DetermineInfoConcept", "title": "개념 및 원리" },
-              {"id": "3", "type": "exploration", "page": "DetermineInfoExploration", "title": "공통성 탐구" },
-              {"id": "4", "type": "practice", "page": "DetermineInfoPractice", "title": "실제 연습" },
-              {"id": "5", "type": "review", "page": "DetermineInfoReview", "title": "마무리 및 AI 분석" }
+              {"id": "3", "type": "practice", "page": "DetermineInfoPractice", "title": "실제 연습" },
+              {"id": "4", "type": "review", "page": "DetermineInfoReview", "title": "마무리 및 AI 분석" }
             ]
           }
         ]

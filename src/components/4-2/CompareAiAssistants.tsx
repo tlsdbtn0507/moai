@@ -88,32 +88,32 @@ const CompareAiAssistants = () => {
       {/* 선택 플로우가 우선 표시 */}
       <div class={pageContainerStyles.container}>
       <Show when={showSelectionFlow()} fallback={
-        <Show 
-          when={selectedCard()} 
-          fallback={
-              <div 
-                class={styles.container}
-                style={{ 'background-image': `url(${backgroundImageUrl})` }}
-              >
-                <div class={styles.contentWrapper}>
+      <Show 
+        when={selectedCard()} 
+        fallback={
+            <div 
+              class={styles.container}
+              style={{ 'background-image': `url(${backgroundImageUrl})` }}
+            >
+              <div class={styles.contentWrapper}>
 
-                  <img 
-                    src={titleImageUrl} 
-                    alt="주제를 선택해보세요" 
-                    class={styles.titleImage}
-                  />
-                  
-                  <div class={styles.cardsContainer}>
-                    {compareStepScripts.map((card) => {
+                <img 
+                  src={titleImageUrl} 
+                  alt="주제를 선택해보세요" 
+                  class={styles.titleImage}
+                />
+                
+                <div class={styles.cardsContainer}>
+                  {compareStepScripts.map((card) => {
                       const cardData = getCardData(card.id);
                       const isCompleted = !!cardData;
-                      return (
-                        <div 
-                          class={`${styles.card} ${isCompleted ? styles.cardCompleted : ''}`}
-                          onClick={() => handleCardClick(card.id)}
-                        >
-                          {isCompleted && (
-                            <div class={styles.clearOverlay}>
+                    return (
+                      <div 
+                        class={`${styles.card} ${isCompleted ? styles.cardCompleted : ''}`}
+                        onClick={() => handleCardClick(card.id)}
+                      >
+                        {isCompleted && (
+                          <div class={styles.clearOverlay}>
                               {cardData?.character && (
                                 <img
                                   src={getS3ImageURL(`4-2/${cardData.character}.png`)}
@@ -121,24 +121,24 @@ const CompareAiAssistants = () => {
                                   class={styles.clearCharacter}
                                 />
                               )}
-                              <img 
-                                src={getS3ImageURL('4-2/clearText.png')} 
-                                alt="CLEAR" 
-                                class={styles.clearText}
-                              />
-                            </div>
-                          )}
-                          <h1 class={styles.cardTitle}>{card.id}</h1>
-                          <img 
-                            src={getS3ImageURL(card.bgPng)} 
-                            alt={card.summary}
-                            class={styles.cardIllustration}
-                          />
-                          <p class={styles.cardText}>{card.summary}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
+                            <img 
+                              src={getS3ImageURL('4-2/clearText.png')} 
+                              alt="CLEAR" 
+                              class={styles.clearText}
+                            />
+                          </div>
+                        )}
+                        <h1 class={styles.cardTitle}>{card.id}</h1>
+                        <img 
+                          src={getS3ImageURL(card.bgPng)} 
+                          alt={card.summary}
+                          class={styles.cardIllustration}
+                        />
+                        <p class={styles.cardText}>{card.summary}</p>
+                      </div>
+                    );
+                  })}
+                </div>
                   <Show when={allCompleted()}>
                     <div class={styles.completeButtonContainer}>
                       <button
@@ -149,13 +149,13 @@ const CompareAiAssistants = () => {
                       >
                         넘어가기
                       </button>
-                    </div>
-                  </Show>
-                </div>
               </div>
-          }
-          >
-          {(card) => (
+                  </Show>
+            </div>
+          </div>
+        }
+      >
+        {(card) => (
             <Show 
             when={!showSelection()}
             fallback={
@@ -170,16 +170,16 @@ const CompareAiAssistants = () => {
               />
             }
             >
-              <CompareAiAssistantDetail 
-                content={card().content} 
-                cardId={card().id}
-                onBack={handleBack}
+          <CompareAiAssistantDetail 
+            content={card().content} 
+            cardId={card().id}
+            onBack={handleBack}
                 onAllCompleted={() => {
                   setShowSelection(true);
                 }}
-                />
+          />
             </Show>
-          )}
+        )}
         </Show>
       }>
         <CompareAiAssistantSelectionFlow
