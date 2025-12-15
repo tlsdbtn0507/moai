@@ -23,6 +23,7 @@ type SpeechBubbleProps = {
   isComplete?: () => boolean; // 타이핑 애니메이션과 음성 재생이 완료되었는지 확인
   scriptHistory?: ScriptItem[]; // 대사 히스토리
   currentScriptIndex?: number; // 현재 대사 인덱스
+  onModalStateChange?: (isOpen: boolean) => void; // 모달 상태 변경 콜백
 };
 
 export function SpeechBubble(props: SpeechBubbleProps) {
@@ -144,7 +145,10 @@ export function SpeechBubble(props: SpeechBubbleProps) {
         {/* 대사집 모달 버튼 */}
         <Show when={props.scriptHistory && props.scriptHistory.length > 0}>
           <button
-            onClick={() => setIsModalOpen(true)}
+            onClick={() => {
+              setIsModalOpen(true);
+              props.onModalStateChange?.(true);
+            }}
             class={styles.scriptHistoryButton}
             title="대사집 보기"
           >
@@ -175,7 +179,10 @@ export function SpeechBubble(props: SpeechBubbleProps) {
       <Show when={props.scriptHistory && props.scriptHistory.length > 0}>
         <ScriptHistoryModal
           isOpen={isModalOpen()}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            props.onModalStateChange?.(false);
+          }}
           scripts={props.scriptHistory!}
           currentIndex={props.currentScriptIndex ?? 0}
         />

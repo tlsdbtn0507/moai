@@ -24,7 +24,9 @@ const LearningAiAssistant = () => {
   const [displayBackgroundUrl, setDisplayBackgroundUrl] = createSignal(getS3ImageURL('4-2/maiCity.png'));
   const [displayCharacterUrl, setDisplayCharacterUrl] = createSignal(getS3ImageURL('4-2/pointingMai.png'));
   const [displayContentUrl, setDisplayContentUrl] = createSignal<string | null>(null);
+  
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
+  
   const navigate = useNavigate();
   const params = useParams();
   
@@ -321,6 +323,8 @@ const LearningAiAssistant = () => {
                 showNavigation={true}
                 onNext={proceedToNext}
                 onPrev={proceedToPrev}
+                scriptHistory={conceptStepScripts.map(s => ({ id: s.id, script: s.script }))}
+                currentScriptIndex={currentScriptIndex()}
                 isComplete={() => {
                   const script = currentScript();
                   if (!script) return false;

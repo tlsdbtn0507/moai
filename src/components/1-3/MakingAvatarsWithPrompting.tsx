@@ -1,4 +1,4 @@
-import { Show, onMount, createSignal, createEffect, onCleanup } from 'solid-js';
+import { Show, onMount, createSignal, createEffect, onCleanup, createMemo } from 'solid-js';
 import { useNavigate, useParams } from '@solidjs/router';
 import pageContainerStyles from '../../styles/PageContainer.module.css';
 import styles from './MakingAvatarsWithPrompting.module.css';
@@ -237,6 +237,13 @@ const MakingAvatarsWithPrompting = () => {
     cancelAutoProceed();
   });
 
+  // 스크립트 히스토리용 인덱스 계산 (id 4는 제외)
+  const scriptHistoryIndex = createMemo(() => {
+    const script = currentScript();
+    if (!script || script.id === 4) return -1;
+    return makingAvatarsScripts.findIndex(s => s.id === script.id);
+  });
+
   const currentScriptImage = () => {
     const script = currentScript();
     const id = script?.id;
@@ -302,6 +309,8 @@ const MakingAvatarsWithPrompting = () => {
                 showNavigation={currentScript()?.id !== 3}
                 onNext={proceedToNext}
                 onPrev={proceedToPrev}
+                scriptHistory={makingAvatarsScripts.map(s => ({ id: s.id, script: s.script }))}
+                currentScriptIndex={scriptHistoryIndex()}
                 isComplete={() => {
                   const script = currentScript();
                   if (!script || script.id === 3 || script.id === 4) return false;

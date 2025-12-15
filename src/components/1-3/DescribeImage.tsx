@@ -20,6 +20,15 @@ const DescribeImage = () => {
   const firstMessage = "우와.. 오늘 노을 진짜 이쁘다. 네가 살던 곳의 노을은 어땠어?";
   const secondMessage = "정말 대단해! 한번 보고 싶은걸?\n혹시 나한테 노을의 풍경을 설명해줄 수 있어?\n내가 너의 설명을 듣고 멋진 노을을 그려줄게";
   
+  // 스크립트 히스토리용 배열
+  const scriptHistory = [
+    { id: 1, script: firstMessage },
+    { id: 2, script: secondMessage },
+  ];
+  
+  // 현재 스크립트 인덱스
+  const currentScriptIndex = () => showSecondMessage() ? 1 : 0;
+  
   const [showConfirmButton, setShowConfirmButton] = createSignal(false);
   const [selectedValue, setSelectedValue] = createSignal<'mt' | 'sea' | 'city' | null>(null);
   const [userInput, setUserInput] = createSignal('');
@@ -123,7 +132,11 @@ const DescribeImage = () => {
           
         }}
       >
-      <SpeechBubble message={typingAnimation.displayedMessage()} />
+      <SpeechBubble 
+        message={typingAnimation.displayedMessage()}
+        scriptHistory={scriptHistory}
+        currentScriptIndex={currentScriptIndex()}
+      />
       {showSelectSunset() && (typingAnimation.displayedMessage().length === firstMessage.length || typingAnimation.isTypingSkipped()) && handleSelectRef && (
         <div style={{     
             position: 'absolute',

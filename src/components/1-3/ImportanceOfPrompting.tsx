@@ -19,6 +19,7 @@ const ImportanceOfPrompting = () => {
   const [audioContextActivated, setAudioContextActivated] = createSignal(false);
   const [wasSkipped, setWasSkipped] = createSignal(false); // 스킵 상태 추적
   const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = createSignal(false); // 모달 상태
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null; // 자동 진행 타이머
   const navigate = useNavigate();
   const params = useParams();
@@ -372,6 +373,9 @@ const ImportanceOfPrompting = () => {
                 showNavigation={true}
                 onNext={proceedToNext}
                 onPrev={proceedToPrev}
+                scriptHistory={importanceOfPromptingScripts.map(s => ({ id: s.id, script: s.script }))}
+                currentScriptIndex={currentScriptIndex()}
+                onModalStateChange={setIsModalOpen}
                 isComplete={() => {
                   const script = currentScript();
                   if (!script) return false;
@@ -492,7 +496,7 @@ const ImportanceOfPrompting = () => {
               />
             </div>
           </div>
-          <Show when={isLastScript() && (typingAnimation.displayedMessage().length === currentScript()?.script.length || wasSkipped())}>
+          <Show when={isLastScript() && (typingAnimation.displayedMessage().length === currentScript()?.script.length || wasSkipped()) && !isModalOpen()}>
             <div class={styles.nextButtonContainer}>
               <button
                 onClick={goToNextStep}
