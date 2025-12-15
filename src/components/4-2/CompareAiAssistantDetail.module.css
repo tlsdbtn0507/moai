@@ -99,8 +99,11 @@
 .arrowButton {
   background: transparent;
   border: 2px solid #333;
-  border-radius: 50%;
-  width: 40px;
+  background: rgba(30, 30, 60, 0.9);
+  font-family: var(--font-cookierun);
+  border-radius: 2rem;
+  color: white;
+  width: 80px;
   height: 40px;
   cursor: pointer;
   font-size: 1.2rem;
@@ -216,14 +219,11 @@
 .inputArea {
   width: 90%;
   height: 80px;
-  /* background: rgba(30, 30, 60, 0.9); */
-  background: white;
-  border: 12px solid rgba(30, 30, 60, 0.9);;
-  padding: 1rem;
-  border-radius: 60px;
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .inputField {
@@ -262,4 +262,81 @@
 .submitButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.backButton {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #fdfdfd 0%, #d7d7d7 55%, #b4b4b4);
+  border: none;
+  border-radius: 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d2d2d;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  font-family: var(--font-cookierun, 'CookieRun', sans-serif);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 6px 14px rgba(0, 0, 0, 0.25);
+}
+
+.backButton:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 8px 18px rgba(0, 0, 0, 0.3);
+}
+
+.backButton:active {
+  transform: translateY(0);
+  opacity: 0.95;
+}
+
+.completeButtonContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.completeButton {
+  padding: 0.75rem 2rem;
+  background: linear-gradient(135deg, #3FB5DB 0%, #2E8BC0 100%);
+  border: none;
+  border-radius: 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  font-family: var(--font-cookierun, 'CookieRun', sans-serif);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.completeButton:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(63, 181, 219, 0.3);
+}
+
+.completeButton:active {
+  transform: translateY(0);
+  opacity: 0.95;
+}
+
+.completeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.completeButtonDisabled {
+  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%) !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+.completeButtonDisabled:hover {
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }

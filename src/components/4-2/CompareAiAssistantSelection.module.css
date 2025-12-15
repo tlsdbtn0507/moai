@@ -1,0 +1,230 @@
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.contentWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1400px;
+  gap: 2rem;
+  z-index: 1;
+}
+
+.header {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  font-family: var(--font-cookierun, 'CookieRun', sans-serif);
+}
+
+.mainCard {
+  background: linear-gradient(135deg, #f5f3ff 0%, #e8e0ff 100%);
+  border-radius: 24px;
+  padding: 3rem;
+  width: 100%;
+  height: 450px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.questionSection {
+  margin-bottom: 0;
+}
+
+.questionText {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  text-align: center;
+  font-family: var(--font-cookierun, 'CookieRun', sans-serif);
+}
+
+.charactersContainer {
+  display: flex;
+  justify-content: space-between;
+}
+
+.characterSection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  padding: 1rem;
+  border-radius: 16px;
+}
+
+.characterSection:hover {
+  transform: translateY(-4px);
+}
+
+.characterSection.selected {
+  background: rgba(63, 181, 219, 0.1);
+  border: 2px solid #3FB5DB;
+}
+
+.responseBubble {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 100%;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.responseText {
+  font-size: 1rem;
+  color: #1a1a1a;
+  line-height: 1.6;
+  margin: 0;
+  font-family: var(--font-cookierun, 'CookieRun', sans-serif);
+}
+
+.pinIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0.5rem 0;
+  width: 100%;
+  height: 30px;
+}
+
+.pinIconImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scaleY(1);
+  animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0) scaleY(1);
+  }
+  50% {
+    transform: translateY(-8px) scaleY(1);
+  }
+}
+
+.characterImageWrapper {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.characterImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.characterName {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+  font-family: var(--font-cookierun, 'CookieRun', sans-serif);
+}
+
+.unselectedContent {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.selectedContent {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.inputSection {
+  background: white;
+  border: 12px solid rgba(30, 30, 60, 0.9);;
+  border-radius: 3rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.inputPrompt {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  font-family: var(--font-cookierun, 'CookieRun', sans-serif);
+}
+
+.inputContainer {
+  flex: 1;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.inputField {
+  flex: 1;
+  border: none;
+  border-radius: 3rem;
+  font-size: 1rem;
+  background: white;
+  color: #333;
+  font-family: var(--font-cookierun, 'CookieRun', sans-serif);
+  outline: none;
+}
+
+.inputField::placeholder {
+  color: #999;
+}
+
+.submitButton {
+  padding: 1rem 2rem;
+  margin-right: 1rem;
+  background: rgba(30, 30, 60, 0.9);
+  border: 2px solid white;
+  border-radius: 3rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-cookierun, 'CookieRun', sans-serif);
+}
+
+.submitButton:hover:not(:disabled) {
+  background: white;
+  color: rgba(30, 30, 60, 0.9);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Clear 오버레이 캐릭터 */
+.clearCharacter {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
+}

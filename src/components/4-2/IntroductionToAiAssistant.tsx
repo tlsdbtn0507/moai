@@ -202,7 +202,7 @@ const IntroductionToAiAssistant = () => {
     // 오디오 시작과 동시에 타이핑 애니메이션 시작
     // 타이핑 애니메이션이 스킵된 상태가 아니면 시작
     if (!typingAnimation.isTypingSkipped()) {
-      typingAnimation.startTyping(script.script);
+    typingAnimation.startTyping(script.script);
     }
   });
 

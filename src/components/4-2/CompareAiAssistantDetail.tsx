@@ -4,11 +4,13 @@ import { LoadingSpinner } from '../LoadingSpinner';
 import { CompareStepScriptInterface } from '../../data/scripts/4-2';
 import styles from './CompareAiAssistantDetail.module.css';
 import pageContainerStyles from '../../styles/PageContainer.module.css';
+import { setCharacterChecked, isCharacterChecked, areAllCharactersChecked } from '../../utils/aiCompareCheck';
 
 type CompareAiAssistantDetailProps = {
   content: CompareStepScriptInterface;
   cardId: number;
   onBack: () => void;
+  onAllCompleted?: () => void;
 };
 
 type CharacterType = 'smartie' | 'kylie' | 'logos';
@@ -22,7 +24,6 @@ const characterNames: Record<CharacterType, string> = {
 const CompareAiAssistantDetail = (props: CompareAiAssistantDetailProps) => {
   const [isReady, setIsReady] = createSignal(false);
   const [selectedCharacter, setSelectedCharacter] = createSignal<CharacterType>('smartie');
-  const [inputValue, setInputValue] = createSignal('');
 
   const backgroundImageUrl = getS3ImageURL('4-2/preBg.png');
   const titleImageUrl = getS3ImageURL('4-2/compareTitle.png');
@@ -32,6 +33,47 @@ const CompareAiAssistantDetail = (props: CompareAiAssistantDetailProps) => {
   const currentCharacterMessages = () => {
     const character = selectedCharacter();
     return props.content[character];
+  };
+
+  const characters: CharacterType[] = ['smartie', 'kylie', 'logos'];
+
+  // 현재 캐릭터 확인 상태
+  const isCurrentCharacterCompleted = () => {
+    return isCharacterChecked(props.cardId, selectedCharacter());
+  };
+
+  // 확인하지 않은 다음 캐릭터 찾기
+  const getNextUncompletedCharacter = () => {
+    const currentIndex = characters.indexOf(selectedCharacter());
+    // 현재 캐릭터부터 시작해서 확인하지 않은 캐릭터 찾기
+    for (let i = 1; i <= characters.length; i++) {
+      const nextIndex = (currentIndex + i) % characters.length;
+      const nextCharacter = characters[nextIndex];
+      if (!isCharacterChecked(props.cardId, nextCharacter)) {
+        return nextCharacter;
+      }
+    }
+    return null; // 모든 캐릭터가 확인됨
+  };
+
+  // 비교 완료 버튼 클릭 핸들러
+  const handleComplete = () => {
+    const currentChar = selectedCharacter();
+    // 현재 캐릭터를 확인 처리
+    setCharacterChecked(props.cardId, currentChar, true);
+    
+    // 확인하지 않은 다음 캐릭터로 이동
+    const nextUncompleted = getNextUncompletedCharacter();
+    if (nextUncompleted) {
+      setSelectedCharacter(nextUncompleted);
+    } else {
+      // 모든 캐릭터가 확인되었으면 새 컴포넌트로 이동
+      if (props.onAllCompleted) {
+        props.onAllCompleted();
+      } else {
+        props.onBack();
+      }
+    }
   };
 
   onMount(async () => {
@@ -56,26 +98,6 @@ const CompareAiAssistantDetail = (props: CompareAiAssistantDetailProps) => {
     setSelectedCharacter(character);
   };
 
-  const handleSubmit = () => {
-    const value = inputValue().trim();
-    if (value.length > 0) {
-      // 로컬 스토리지에 주제 번호 저장
-      const storageKey = `compareAiAssistant_${props.cardId}`;
-      localStorage.setItem(storageKey, value);
-      
-      // CompareAiAssistants로 돌아가기
-      props.onBack();
-    }
-  };
-
-  const handleKeyPress = (e: KeyboardEvent) => {
-    if (e.key === 'Enter' && inputValue().trim().length > 0) {
-      handleSubmit();
-    }
-  };
-
-  const characters: CharacterType[] = ['smartie', 'kylie', 'logos'];
-
   return (
     <Show when={isReady()} fallback={<LoadingSpinner />}>
       <div class={pageContainerStyles.container}>
@@ -83,6 +105,14 @@ const CompareAiAssistantDetail = (props: CompareAiAssistantDetailProps) => {
           class={styles.container}
           style={{ 'background-image': `url(${backgroundImageUrl})` }}
         >
+          {/* 좌상단 뒤로 가기 버튼 */}
+          <button 
+            class={styles.backButton}
+            onClick={() => props.onBack()}
+          >
+            뒤로
+          </button>
+          
           <div class={styles.contentWrapper}>
             <img 
               src={titleImageUrl} 
@@ -109,27 +139,7 @@ const CompareAiAssistantDetail = (props: CompareAiAssistantDetailProps) => {
                 </div>
                 <div class={styles.characterNameWrapper}>
                   <div class={styles.characterNameContainer}>
-                    <button 
-                      class={styles.arrowButton}
-                      onClick={() => {
-                        const currentIndex = characters.indexOf(selectedCharacter());
-                        const prevIndex = currentIndex === 0 ? characters.length - 1 : currentIndex - 1;
-                        setSelectedCharacter(characters[prevIndex]);
-                      }}
-                    >
-                      ←
-                    </button>
                     <h2 class={styles.characterName}>{currentCharacterName()}</h2>
-                    <button 
-                      class={styles.arrowButton}
-                      onClick={() => {
-                        const currentIndex = characters.indexOf(selectedCharacter());
-                        const nextIndex = currentIndex === characters.length - 1 ? 0 : currentIndex + 1;
-                        setSelectedCharacter(characters[nextIndex]);
-                      }}
-                    >
-                      →
-                    </button>
                   </div>
                   
                   <div class={styles.characterImageContainer}>
@@ -139,6 +149,16 @@ const CompareAiAssistantDetail = (props: CompareAiAssistantDetailProps) => {
                       class={styles.characterImage}
                     />
                   </div>
+                                  {/* 비교 완료 버튼 */}
+                <div class={styles.completeButtonContainer}>
+                  <button 
+                    class={`${styles.completeButton} ${isCurrentCharacterCompleted() ? styles.completeButtonDisabled : ''}`}
+                    onClick={handleComplete}
+                    disabled={isCurrentCharacterCompleted()}
+                  >
+                    {isCurrentCharacterCompleted() ? '이미 확인함' : '비교 완료'}
+                  </button>
+                </div>
                 </div>
               </div>
 
@@ -166,22 +186,27 @@ const CompareAiAssistantDetail = (props: CompareAiAssistantDetailProps) => {
               </div>
             </div>
 
-            {/* 하단 입력 영역 */}
+            {/* 하단 화살표 버튼 영역 */}
             <div class={styles.inputArea}>
-              <input 
-                type="text" 
-                placeholder="세 비서의 대답을 듣고, 어느 비서의 대답이 좋았는지 이유를 적어주세요."
-                class={styles.inputField}
-                value={inputValue()}
-                onInput={(e) => setInputValue(e.currentTarget.value)}
-                onKeyPress={handleKeyPress}
-              />
               <button 
-                class={styles.submitButton}
-                onClick={handleSubmit}
-                disabled={inputValue().trim().length === 0}
+                class={styles.arrowButton}
+                onClick={() => {
+                  const currentIndex = characters.indexOf(selectedCharacter());
+                  const prevIndex = currentIndex === 0 ? characters.length - 1 : currentIndex - 1;
+                  setSelectedCharacter(characters[prevIndex]);
+                }}
               >
-                입력
+                이전
+              </button>
+              <button 
+                class={styles.arrowButton}
+                onClick={() => {
+                  const currentIndex = characters.indexOf(selectedCharacter());
+                  const nextIndex = currentIndex === characters.length - 1 ? 0 : currentIndex + 1;
+                  setSelectedCharacter(characters[nextIndex]);
+                }}
+              >
+                다음
               </button>
             </div>
           </div>

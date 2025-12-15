@@ -40,6 +40,14 @@ interface FinishingUpqScriptInterface {
     maiPng: string;
 }
 
+export interface CompareAiAssistantSelectionInterface {
+    id: number;
+    script: string;
+    voice: string;
+    maiPng:string;
+    bgPng:string;
+}
+
 export const introductionScripts: IntroductionScriptInterface[] = [
     {
         id: 1,
@@ -301,6 +309,23 @@ export const introductionScripts: IntroductionScriptInterface[] = [
         bgPng: '4-2/purpleSpace.png',
         speechBubble:true,
         scriptBgLine:false,
+    },
+]
+
+export const compareAiAssistantSelectionScripts : CompareAiAssistantSelectionInterface[] = [
+    {
+        id: 1,
+        script: '주제에 따라서 비서의 답변들을 확인해 보았는데 어때?\n하나의 비서가 모든 상황에서 가장 좋은 답을 주는 건 아니야.',
+        voice: '4-2/4-2_addition_1.mp3',
+        maiPng: '4-2/reportingMai.png',
+        bgPng: '4-2/purpleSpace.png',
+    },
+    {
+        id: 2,
+        script: '상황이 달라지면, 더 잘 어울리는 비서의 스타일도 함께 달라지거든.\n그렇다면 이런 차이를 만드는 ‘구성 요소’는 무엇일까?\n같이 한번 살펴보자!',
+        voice: '4-2/4-2_addition_2.mp3',
+        maiPng: '4-2/reportingMai.png',
+        bgPng: '4-2/purpleSpace.png',
     },
 ]
 

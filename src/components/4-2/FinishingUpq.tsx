@@ -14,6 +14,7 @@ import { useSkipControls } from '../../utils/hooks/useSkipControls';
 import { ConfirmButton } from '../1-3/ConfirmButton';
 import { ScoreBoard } from '../1-3/ScoreBoard';
 import { callGPT4Mini, type PromptScores } from '../../utils/gptChat';
+import { getAllCardSelections, resetAiCompareCheck } from '../../utils/aiCompareCheck';
 
 const FinishingUpq = () => {
   const [isReady, setIsReady] = createSignal(false);
@@ -62,14 +63,14 @@ const FinishingUpq = () => {
   // 4-2용 프롬프트 평가 함수
   const evaluateCompareAiAssistantPrompts = async (): Promise<PromptScores> => {
     // 로컬스토리지에서 데이터 가져오기
-    const response1 = localStorage.getItem('compareAiAssistant_1') || '';
-    const response2 = localStorage.getItem('compareAiAssistant_2') || '';
-    const response3 = localStorage.getItem('compareAiAssistant_3') || '';
-
-    // 모든 응답을 하나로 합치기
-    const combinedResponses = [response1, response2, response3]
-      .filter(r => r && r.trim().length > 0)
-      .join('\n\n');
+    const selections = getAllCardSelections();
+    
+    // 모든 응답을 하나로 합치기 (reason만 추출)
+    const reasons = [1, 2, 3]
+      .map(cardId => selections[cardId]?.reason || '')
+      .filter(r => r && r.trim().length > 0);
+    
+    const combinedResponses = reasons.join('\n\n');
 
     if (!combinedResponses) {
       // 데이터가 없으면 기본 피드백 반환
@@ -184,9 +185,7 @@ const FinishingUpq = () => {
 
   // 비교 비서 응답 로컬스토리지 초기화
   const clearCompareAiAssistantResponses = () => {
-    localStorage.removeItem('compareAiAssistant_1');
-    localStorage.removeItem('compareAiAssistant_2');
-    localStorage.removeItem('compareAiAssistant_3');
+    resetAiCompareCheck();
   };
 
   // 프롬프트 평가 함수

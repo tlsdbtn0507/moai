@@ -91,17 +91,17 @@ export function CompareModal(props: CompareModalProps) {
     }
 
     // 스킵 상태 초기화 후 오디오/타이핑 시작
-    typingAnimation.resetSkipState();
-
-    if (!audioPlayback.isPlaying()) {
-      audioPlayback.playAudio('1-3_Introduction_3.mp3', {
-        onLoaded: () => {
-          // 오디오 재생 후 0.5초 뒤에 타이핑 애니메이션 시작
-          setTimeout(() => {
-            typingAnimation.startTyping(fullMessage);
-          }, 500);
-        },
-      });
+      typingAnimation.resetSkipState();
+      
+      if (!audioPlayback.isPlaying()) {
+        audioPlayback.playAudio('1-3_Introduction_3.mp3', {
+          onLoaded: () => {
+        // 오디오 재생 후 0.5초 뒤에 타이핑 애니메이션 시작
+        setTimeout(() => {
+              typingAnimation.startTyping(fullMessage);
+        }, 500);
+          },
+        });
     }
   });
 
@@ -144,15 +144,15 @@ export function CompareModal(props: CompareModalProps) {
         generatedImageUrl={props.generatedImageUrl}
         onClose={props.onClose}
         onSubmitNext={() => {
-          const nextStepId = String(parseInt(params.stepId || '1', 10) + 1);
-          navigate(`/${params.worldId}/${params.classId}/${nextStepId}`);
+                const nextStepId = String(parseInt(params.stepId || '1', 10) + 1);
+                navigate(`/${params.worldId}/${params.classId}/${nextStepId}`);
         }}
         onReset={() => {
-          useDescribeImageStore.getState().resetPrompt();
-          if (props.onReset) {
-            props.onReset();
-          }
-        }}
+                    useDescribeImageStore.getState().resetPrompt();
+                    if (props.onReset) {
+                      props.onReset();
+                    }
+                  }}
       />
     </>
   );

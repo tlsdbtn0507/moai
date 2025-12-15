@@ -1,15 +1,21 @@
-import { Show, createSignal, onMount, createEffect } from 'solid-js';
+import { Show, createSignal, onMount, createMemo } from 'solid-js';
 import { useNavigate, useParams } from '@solidjs/router';
 import { LoadingSpinner } from '../LoadingSpinner';
 import { getS3ImageURL, preloadImages } from '../../utils/loading';
-import { compareStepScripts } from '../../data/scripts/4-2';
+import { compareStepScripts, compareAiAssistantSelectionScripts } from '../../data/scripts/4-2';
 import CompareAiAssistantDetail from './CompareAiAssistantDetail';
+import CompareAiAssistantSelection from './CompareAiAssistantSelection';
+import { CompareAiAssistantSelectionFlow } from './CompareAiAssistantSelectionFlow';
 import styles from './CompareAiAssistants.module.css';
 import pageContainerStyles from '../../styles/PageContainer.module.css';
+import { getCardSelection } from '../../utils/aiCompareCheck';
 
 const CompareAiAssistants = () => {
   const [isReady, setIsReady] = createSignal(false);
   const [selectedCardId, setSelectedCardId] = createSignal<number | null>(null);
+  const [showSelection, setShowSelection] = createSignal(false);
+  const [showSelectionFlow, setShowSelectionFlow] = createSignal(false);
+  const [refreshTrigger, setRefreshTrigger] = createSignal(0);
   const navigate = useNavigate();
   const params = useParams();
 
@@ -33,6 +39,8 @@ const CompareAiAssistants = () => {
         getS3ImageURL('4-2/smartie.png'),
         getS3ImageURL('4-2/kylie.png'),
         getS3ImageURL('4-2/logos.png'),
+        ...compareAiAssistantSelectionScripts.map(s => getS3ImageURL(s.bgPng)),
+        ...compareAiAssistantSelectionScripts.map(s => getS3ImageURL(s.maiPng)),
       ];
       
       await preloadImages(imagesToPreload);
@@ -49,92 +57,141 @@ const CompareAiAssistants = () => {
 
   const handleBack = () => {
     setSelectedCardId(null);
-    // 돌아온 후 모든 카드가 완료되었는지 확인
-    if (areAllCardsCompleted()) {
-      const worldId = params.worldId || '4';
-      const classId = params.classId || '2';
-      navigate(`/${worldId}/${classId}/3`);
-    }
+    refreshCompletionStatus(); // 완료 상태 새로고침
+  };
+
+  const getCardData = (cardId: number) => {
+    refreshTrigger(); // 반응성 트리거
+    return getCardSelection(cardId);
   };
 
   const isCardCompleted = (cardId: number) => {
-    const storageKey = `compareAiAssistant_${cardId}`;
-    return localStorage.getItem(storageKey) !== null;
+    return getCardData(cardId) !== null;
   };
 
   const areAllCardsCompleted = () => {
     return compareStepScripts.every(card => isCardCompleted(card.id));
   };
 
-  // 모든 카드가 완료되었는지 확인하고, 완료되면 다음 단계로 이동
-  createEffect(() => {
-    // 카드 선택 화면일 때만 확인
-    if (!selectedCardId() && isReady() && areAllCardsCompleted()) {
-      const worldId = params.worldId || '4';
-      const classId = params.classId || '2';
-      navigate(`/${worldId}/${classId}/3`);
-    }
+  const allCompleted = createMemo(() => {
+    refreshTrigger(); // 반응성 트리거
+    return areAllCardsCompleted();
   });
+
+  // 카드 완료 상태를 강제로 새로고침하는 함수
+  const refreshCompletionStatus = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   return (
     <Show when={isReady()} fallback={<LoadingSpinner />}>
-      <Show 
-        when={selectedCard()} 
-        fallback={
-          <div class={pageContainerStyles.container}>
-            <div 
-              class={styles.container}
-              style={{ 'background-image': `url(${backgroundImageUrl})` }}
-            >
-              <div class={styles.contentWrapper}>
+      {/* 선택 플로우가 우선 표시 */}
+      <div class={pageContainerStyles.container}>
+      <Show when={showSelectionFlow()} fallback={
+        <Show 
+          when={selectedCard()} 
+          fallback={
+              <div 
+                class={styles.container}
+                style={{ 'background-image': `url(${backgroundImageUrl})` }}
+              >
+                <div class={styles.contentWrapper}>
 
-                <img 
-                  src={titleImageUrl} 
-                  alt="주제를 선택해보세요" 
-                  class={styles.titleImage}
-                />
-                
-                <div class={styles.cardsContainer}>
-                  {compareStepScripts.map((card) => {
-                    const isCompleted = isCardCompleted(card.id);
-                    return (
-                      <div 
-                        class={`${styles.card} ${isCompleted ? styles.cardCompleted : ''}`}
-                        onClick={() => handleCardClick(card.id)}
+                  <img 
+                    src={titleImageUrl} 
+                    alt="주제를 선택해보세요" 
+                    class={styles.titleImage}
+                  />
+                  
+                  <div class={styles.cardsContainer}>
+                    {compareStepScripts.map((card) => {
+                      const cardData = getCardData(card.id);
+                      const isCompleted = !!cardData;
+                      return (
+                        <div 
+                          class={`${styles.card} ${isCompleted ? styles.cardCompleted : ''}`}
+                          onClick={() => handleCardClick(card.id)}
+                        >
+                          {isCompleted && (
+                            <div class={styles.clearOverlay}>
+                              {cardData?.character && (
+                                <img
+                                  src={getS3ImageURL(`4-2/${cardData.character}.png`)}
+                                  alt={cardData.character}
+                                  class={styles.clearCharacter}
+                                />
+                              )}
+                              <img 
+                                src={getS3ImageURL('4-2/clearText.png')} 
+                                alt="CLEAR" 
+                                class={styles.clearText}
+                              />
+                            </div>
+                          )}
+                          <h1 class={styles.cardTitle}>{card.id}</h1>
+                          <img 
+                            src={getS3ImageURL(card.bgPng)} 
+                            alt={card.summary}
+                            class={styles.cardIllustration}
+                          />
+                          <p class={styles.cardText}>{card.summary}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <Show when={allCompleted()}>
+                    <div class={styles.completeButtonContainer}>
+                      <button
+                        class={styles.completeButton}
+                      onClick={() => {
+                        setShowSelectionFlow(true);
+                      }}
                       >
-                        {isCompleted && (
-                          <div class={styles.clearOverlay}>
-                            <img 
-                              src={getS3ImageURL('4-2/clearText.png')} 
-                              alt="CLEAR" 
-                              class={styles.clearText}
-                            />
-                          </div>
-                        )}
-                        <h1 class={styles.cardTitle}>{card.id}</h1>
-                        <img 
-                          src={getS3ImageURL(card.bgPng)} 
-                          alt={card.summary}
-                          class={styles.cardIllustration}
-                        />
-                        <p class={styles.cardText}>{card.summary}</p>
-                      </div>
-                    );
-                  })}
+                        넘어가기
+                      </button>
+                    </div>
+                  </Show>
                 </div>
               </div>
-            </div>
-          </div>
-        }
-      >
-        {(card) => (
-          <CompareAiAssistantDetail 
-            content={card().content} 
-            cardId={card().id}
-            onBack={handleBack}
-          />
-        )}
+          }
+          >
+          {(card) => (
+            <Show 
+            when={!showSelection()}
+            fallback={
+              <CompareAiAssistantSelection
+              content={card().content}
+              cardId={card().id}
+              onBack={() => {
+                setShowSelection(false);
+                setSelectedCardId(null);
+                refreshCompletionStatus(); // 완료 상태 새로고침
+              }}
+              />
+            }
+            >
+              <CompareAiAssistantDetail 
+                content={card().content} 
+                cardId={card().id}
+                onBack={handleBack}
+                onAllCompleted={() => {
+                  setShowSelection(true);
+                }}
+                />
+            </Show>
+          )}
+        </Show>
+      }>
+        <CompareAiAssistantSelectionFlow
+          scripts={compareAiAssistantSelectionScripts}
+          onAllComplete={() => {
+            const worldId = params.worldId || '4';
+            const classId = params.classId || '2';
+            navigate(`/${worldId}/${classId}/3`);
+          }}
+        />
       </Show>
+          </div>
     </Show>
   );
 };
