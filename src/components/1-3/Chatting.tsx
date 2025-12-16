@@ -33,7 +33,7 @@ type ChattingProps = {
 const getInitialMessage = (optionId: number): string => {
     switch (optionId) {
         case 1: // 얼굴
-            return '표정, 피부색, 눈 형태를 포함해서 캐릭터 얼굴을 설명해봐!';
+            return '표정, 피부색, 눈 형태를 포함해서\n캐릭터 얼굴을 설명해봐!';
         case 2: // 옷
             return '상의와 하의의 종류, 색깔, 그리고 무늬나 특징을 포함해서\n캐릭터의 옷을 설명해봐!';
         case 3: // 장신구

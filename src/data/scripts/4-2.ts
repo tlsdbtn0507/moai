@@ -411,7 +411,7 @@ export const conceptStepScripts : ConceptScriptInterface[] = [
         content: '',
         script: '좋아! 이제 네가 만들 AI 비서를 본격적으로 설계해보자.',
         voice: '4-2/4-2_development_1.mp3',
-        maiPng: '4-2/pointingMai.png',
+        maiPng: '4-2/pointMai.png',
         isMaiRight: true,
     },
     {
@@ -420,7 +420,7 @@ export const conceptStepScripts : ConceptScriptInterface[] = [
         content: '',
         script: 'AI 비서 만들기는 여러 요소를 조립해서\n비서의 성격, 반응 방식, 작업 스타일을 만들어가는\n과정이야.',
         voice: '4-2/4-2_development_2.mp3',
-        maiPng: '4-2/pointingMai.png',
+        maiPng: '4-2/pointMai.png',
         isMaiRight: true,
     },
     {
@@ -429,7 +429,7 @@ export const conceptStepScripts : ConceptScriptInterface[] = [
         content: '',
         script: '역할, 기능, 말투, 행동 규칙, 도구 같은 요소를 결정하면\n비서가 어떤 방식으로 ‘생각하고 말하는지’가 완성되지.',
         voice: '4-2/4-2_development_3.mp3',
-        maiPng: '4-2/pointingMai.png',
+        maiPng: '4-2/pointMai.png',
         isMaiRight: true,
     },
     {
@@ -438,7 +438,7 @@ export const conceptStepScripts : ConceptScriptInterface[] = [
         content: '',
         script: '이제부터 그 다섯 가지 요소를 차근차근 알려줄게.',
         voice: '4-2/4-2_development_4.mp3',
-        maiPng: '4-2/pointingMai.png',
+        maiPng: '4-2/pointMai.png',
         isMaiRight: true,
     },
     {
@@ -609,7 +609,7 @@ export const conceptStepScripts : ConceptScriptInterface[] = [
         content: '',
         script: '행동 규칙은 비서가\n정보를 정리하는 방식과 대화를 진행하는 흐름을 정해.',
         voice: '4-2/4-2_development_23.mp3',
-        maiPng: '4-2/pointingMai.png',
+        maiPng: '4-2/pointMai.png',
         isMaiRight: true,
     },
     {
@@ -618,7 +618,7 @@ export const conceptStepScripts : ConceptScriptInterface[] = [
         content: '',
         script: '어떤 정보를 먼저 선택할지, 어떤 기준으로 판단할지,\n답변을 어떤 구조로 만들어낼지가 모두 포함되지.',
         voice: '4-2/4-2_development_24.mp3',
-        maiPng: '4-2/pointingMai.png',
+        maiPng: '4-2/pointMai.png',
         isMaiRight: true,
     },
     {
@@ -627,7 +627,7 @@ export const conceptStepScripts : ConceptScriptInterface[] = [
         content: '',
         script: '말하자면 비서의 ‘내부 사고 절차’를\n만드는 단계야.',
         voice: '4-2/4-2_development_25.mp3',
-        maiPng: '4-2/pointingMai.png',
+        maiPng: '4-2/pointMai.png',
         isMaiRight: true,
     },
     {
@@ -636,7 +636,7 @@ export const conceptStepScripts : ConceptScriptInterface[] = [
         content: '',
         script: '이 규칙이 안정적이어야 비서가 상황을 받을 때마다\n일관된 방식으로 행동할 수 있어.',
         voice: '4-2/4-2_development_26.mp3',
-        maiPng: '4-2/pointingMai.png',
+        maiPng: '4-2/pointMai.png',
         isMaiRight: true,
     },
     {
@@ -645,7 +645,7 @@ export const conceptStepScripts : ConceptScriptInterface[] = [
         content: '4-2/eaCOT.png',
         script: '일관성을 유지하기 위해 이런 기본 규칙을\n넣을 수 있어.',
         voice: '4-2/4-2_development_27.mp3',
-        maiPng: '4-2/pointingMai.png',
+        maiPng: '4-2/pointMai.png',
         isMaiRight: true,
     },
     {
@@ -654,7 +654,7 @@ export const conceptStepScripts : ConceptScriptInterface[] = [
         content: '4-2/eaCOT.png',
         script: '이 규칙들은 비서가 이상한 행동을 하지 않도록\n잡아주는 안전장치 역할을 하기도 해.',
         voice: '4-2/4-2_development_28.mp3',
-        maiPng: '4-2/pointingMai.png',
+        maiPng: '4-2/pointMai.png',
         isMaiRight: true,
     },
     {

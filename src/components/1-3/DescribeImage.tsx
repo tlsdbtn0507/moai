@@ -17,7 +17,7 @@ const DescribeImage = () => {
   const backgroundImageStyle = getS3ImageURL('sunsetOfMoai.png');
   const backgroundImageStyleURL = `url(${backgroundImageStyle})`;
   
-  const firstMessage = "우와.. 오늘 노을 진짜 이쁘다. 네가 살던 곳의 노을은 어땠어?";
+  const firstMessage = "우와.. 오늘 노을 진짜 이쁘다.\n네가 살던 곳의 노을은 어땠어?";
   const secondMessage = "정말 대단해! 한번 보고 싶은걸?\n혹시 나한테 노을의 풍경을 설명해줄 수 있어?\n내가 너의 설명을 듣고 멋진 노을을 그려줄게";
   
   // 스크립트 히스토리용 배열
