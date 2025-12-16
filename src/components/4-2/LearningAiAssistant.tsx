@@ -108,8 +108,9 @@ const LearningAiAssistant = () => {
     onFirstSkip: () => {
       const script = currentScript();
       if (script) {
+        const plainScript = stripHtmlTags(script.script);
         typingAnimation.skipTyping();
-        typingAnimation.setDisplayedMessage(script.script);
+        typingAnimation.setDisplayedMessage(plainScript);
         // wasSkipped는 설정하지 않음 - 오디오가 재생 중이면 계속 재생되도록
       }
     },
@@ -166,6 +167,10 @@ const LearningAiAssistant = () => {
     }
   });
 
+  // HTML 태그 제거 유틸 (타이핑용 순수 텍스트)
+  const stripHtmlTags = (text: string): string =>
+    text.replace(/<\/?[^>]+(>|$)/g, '');
+
   // 스크립트 변경 시 처리 (스크립트 인덱스만 추적)
   createEffect(() => {
     const scriptIndex = currentScriptIndex();
@@ -196,7 +201,9 @@ const LearningAiAssistant = () => {
     }
 
     // 오디오 시작과 동시에 타이핑 애니메이션 시작
-    typingAnimation.startTyping(script.script);
+    // HTML 태그를 제거한 순수 텍스트로 타이핑
+    const plainScript = stripHtmlTags(script.script);
+    typingAnimation.startTyping(plainScript);
   });
 
   // 오디오 컨텍스트 활성화 함수
@@ -281,6 +288,25 @@ const LearningAiAssistant = () => {
     return imageClass;
   });
 
+  // 현재 대사를 HTML 포함 버전으로 보여줄지 결정 (타이핑 완료 시)
+  const displayMessage = () => {
+    const script = currentScript();
+    if (!script) return typingAnimation.displayedMessage();
+
+    const plainScript = stripHtmlTags(script.script);
+    const isTypingComplete =
+      typingAnimation.displayedMessage().length === plainScript.length ||
+      typingAnimation.isTypingSkipped();
+    const isAudioComplete = !audioPlayback.isPlaying();
+
+    const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped())
+      ? isTypingComplete
+      : (isTypingComplete && isAudioComplete);
+
+    // 완료 전에는 순수 텍스트(타이핑), 완료 후에는 HTML 포함 원본 스크립트
+    return isComplete ? script.script : typingAnimation.displayedMessage();
+  };
+
   return (
     <Show when={isReady()} fallback={<LoadingSpinner />}>
       <div
@@ -288,6 +314,9 @@ const LearningAiAssistant = () => {
         style={{ "background-color": '#A9E0FF',}}
       >
         <div class={styles.contentWrapper}>
+          <Show when={currentScriptData()?.id < 5}>
+            <span class={styles.activityTitleSpan}>활동</span>
+          </Show>
           <div class={styles.spanWrapper}><span>AI 비서 만들기</span></div>
           <Show when={currentScriptData()?.activity && !isFading()}>
             <h1 class={`${styles.activityTitle} ${styles.fadeIn}`}>
@@ -318,17 +347,23 @@ const LearningAiAssistant = () => {
           <Show when={currentScriptData() && !isFading()}>
             <div class={`${styles.speechBubbleWrapper} ${styles.fadeIn}`}>
               <SpeechBubble 
-                message={typingAnimation.displayedMessage()} 
+                message={displayMessage()} 
                 size={600}
                 showNavigation={true}
                 onNext={proceedToNext}
                 onPrev={proceedToPrev}
-                scriptHistory={conceptStepScripts.map(s => ({ id: s.id, script: s.script }))}
+                // 현재 대사 이전의 기록만 표시
+                scriptHistory={conceptStepScripts
+                  .slice(0, currentScriptIndex() + 1)
+                  .map(s => ({ id: s.id, script: s.script }))} 
                 currentScriptIndex={currentScriptIndex()}
                 isComplete={() => {
                   const script = currentScript();
                   if (!script) return false;
-                  const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                  const plainScript = stripHtmlTags(script.script);
+                  const isTypingComplete =
+                    typingAnimation.displayedMessage().length === plainScript.length ||
+                    typingAnimation.isTypingSkipped();
                   const isAudioComplete = !audioPlayback.isPlaying();
                   // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
                   if (typingAnimation.isTypingSkipped() || wasSkipped()) {
@@ -339,7 +374,10 @@ const LearningAiAssistant = () => {
                 canGoNext={() => {
                   const script = currentScript();
                   if (!script) return false;
-                  const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
+                  const plainScript = stripHtmlTags(script.script);
+                  const isTypingComplete =
+                    typingAnimation.displayedMessage().length === plainScript.length ||
+                    typingAnimation.isTypingSkipped();
                   const isAudioComplete = !audioPlayback.isPlaying();
                   // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
                   const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped()) 
@@ -353,7 +391,15 @@ const LearningAiAssistant = () => {
           </Show>
         </div>
 
-        <Show when={isLastScript() && (typingAnimation.displayedMessage().length === currentScript()?.script.length || wasSkipped())}>
+        <Show when={isLastScript() && (() => {
+          const script = currentScript();
+          if (!script) return false;
+          const plainScript = stripHtmlTags(script.script);
+          return (
+            typingAnimation.displayedMessage().length === plainScript.length ||
+            wasSkipped()
+          );
+        })()}>
           <div class={styles.buttonContainer}>
             <button
               onClick={goToNextStep}

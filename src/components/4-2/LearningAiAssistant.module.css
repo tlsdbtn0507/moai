@@ -202,3 +202,12 @@
     opacity: 0;
   }
 }
+
+.activityTitleSpan {
+  position: absolute;
+  top: 7rem;
+  left: 10rem;
+  background-color: #B2C8D0;
+  padding: 0 1rem;
+  border-radius: 2rem;
+}
