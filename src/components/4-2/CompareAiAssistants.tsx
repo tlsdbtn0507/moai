@@ -52,6 +52,10 @@ const CompareAiAssistants = () => {
   });
 
   const handleCardClick = (cardId: number) => {
+    // 클리어된 카드는 클릭 불가
+    if (isCardCompleted(cardId)) {
+      return;
+    }
     setSelectedCardId(cardId);
   };
 
@@ -163,6 +167,12 @@ const CompareAiAssistants = () => {
               content={card().content}
               cardId={card().id}
               onBack={() => {
+                setShowSelection(false);
+                // setSelectedCardId(null)을 제거하여 CompareAiAssistantDetail로 돌아가도록 함
+                refreshCompletionStatus(); // 완료 상태 새로고침
+              }}
+              onSubmit={() => {
+                // 제출 후 CompareAiAssistants(카드 선택 화면)로 돌아가기
                 setShowSelection(false);
                 setSelectedCardId(null);
                 refreshCompletionStatus(); // 완료 상태 새로고침

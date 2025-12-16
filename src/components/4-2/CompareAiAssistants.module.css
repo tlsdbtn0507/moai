@@ -64,6 +64,17 @@
   border-color: rgba(100, 150, 255, 0.6);
 }
 
+.cardCompleted {
+  cursor: default;
+  pointer-events: none;
+}
+
+.cardCompleted:hover {
+  transform: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: rgba(100, 150, 255, 0.3);
+}
+
 .cardIllustration {
   width: 100%;
   height: auto;
@@ -156,14 +167,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
-  max-width: 900px;
-  padding: 2rem;
+
 }
 
 .selectionFlowMai {
-  width: 300px;
-  height: auto;
+  width: 400px;
   object-fit: contain;
 }
 
@@ -185,7 +193,7 @@
 
 .nextButtonContainer {
   position: absolute;
-  bottom: 14%;
+  bottom: 9%;
   right: 15rem;
   z-index: 6;
 }

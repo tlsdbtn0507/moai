@@ -295,6 +295,18 @@ const IntroductionToAiAssistant = () => {
     return undefined;
   });
 
+  // 스크립트 ID에 따라 캐릭터 이름 반환
+  const getCharacterName = (scriptId: number): string | undefined => {
+    if (scriptId >= 17 && scriptId <= 20) {
+      return '스마티';
+    } else if (scriptId >= 21 && scriptId <= 25) {
+      return '카일리';
+    } else if (scriptId >= 26 && scriptId <= 28) {
+      return '로고스';
+    }
+    return undefined; // MAI는 표시하지 않음
+  };
+
   // 완료 여부 확인 (반응형)
   const isComplete = createMemo(() => {
     const script = currentScript();
@@ -379,13 +391,14 @@ const IntroductionToAiAssistant = () => {
                 scriptHistory={introductionScripts.slice(0, currentScriptIndex() + 1).map(script => ({
                   id: script.id,
                   script: script.script,
+                  characterName: getCharacterName(script.id),
                 }))}
                 currentScriptIndex={currentScriptIndex()}
               />
             </div>
           </Show>
           
-          <Show when={!currentScriptData()?.speechBubble && currentScriptData()?.scriptBgLine && !isFading()}>
+          <Show when={!currentScriptData()?.speechBubble && currentScriptData()?.scriptBgLine && !isFading() && typingAnimation.displayedMessage().length > 0}>
             <div class={`${styles.scriptBgLine} ${styles.fadeIn}`} style={{ position:'relative' }}>
               {typingAnimation.displayedMessage()}
               <Show when={shouldShowPrevButton()}>
@@ -407,7 +420,7 @@ const IntroductionToAiAssistant = () => {
             </div>
           </Show>
 
-          <Show when={!currentScriptData()?.speechBubble && !currentScriptData()?.scriptBgLine && !isFading()}>
+          <Show when={!currentScriptData()?.speechBubble && !currentScriptData()?.scriptBgLine && !isFading() && typingAnimation.displayedMessage().length > 0}>
             <div class={`${styles.plainText} ${styles.fadeIn}`} style={{ position: 'absolute', bottom: '3rem' }}>
               {typingAnimation.displayedMessage()}
               <Show when={shouldShowPrevButton()}>
@@ -432,42 +445,6 @@ const IntroductionToAiAssistant = () => {
 
         <Show when={isLastScript() && (typingAnimation.displayedMessage().length === currentScript()?.script.length || wasSkipped())}>
           <div class={styles.buttonContainer}>
-            <button
-              onClick={restartFromBeginning}
-              class={`${styles.button} ${styles.buttonSecondary}`}
-            >
-              처음부터 다시듣기
-            </button>
-            <div class={styles.dropdownContainer} data-character-dropdown>
-              <button
-                onClick={() => setShowCharacterDropdown(!showCharacterDropdown())}
-                class={`${styles.button} ${styles.buttonSecondary}`}
-              >
-                캐릭터 다시 듣기
-              </button>
-              <Show when={showCharacterDropdown()}>
-                <div class={styles.dropdown}>
-                  <button
-                    onClick={() => goToCharacterScript(17)}
-                    class={`${styles.dropdownItem} ${styles.dropdownItemFirst}`}
-                  >
-                    스마티
-                  </button>
-                  <button
-                    onClick={() => goToCharacterScript(21)}
-                    class={styles.dropdownItem}
-                  >
-                    카일리
-                  </button>
-                  <button
-                    onClick={() => goToCharacterScript(26)}
-                    class={`${styles.dropdownItem} ${styles.dropdownItemLast}`}
-                  >
-                    로고스
-                  </button>
-                </div>
-              </Show>
-            </div>
             <button
               onClick={goToNextStep}
               class={`${styles.button} ${styles.buttonPrimary}`}

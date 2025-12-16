@@ -150,15 +150,15 @@ const CompareAiAssistantDetail = (props: CompareAiAssistantDetailProps) => {
                     />
                   </div>
                                   {/* 비교 완료 버튼 */}
-                <div class={styles.completeButtonContainer}>
-                  <button 
-                    class={`${styles.completeButton} ${isCurrentCharacterCompleted() ? styles.completeButtonDisabled : ''}`}
-                    onClick={handleComplete}
-                    disabled={isCurrentCharacterCompleted()}
-                  >
-                    {isCurrentCharacterCompleted() ? '이미 확인함' : '비교 완료'}
-                  </button>
-                  </div>
+                  {/* <div class={styles.completeButtonContainer}>
+                    <button 
+                      class={`${styles.completeButton} ${isCurrentCharacterCompleted() ? styles.completeButtonDisabled : ''}`}
+                      onClick={handleComplete}
+                      disabled={isCurrentCharacterCompleted()}
+                    >
+                      {isCurrentCharacterCompleted() ? '이미 확인함' : '비교 완료'}
+                    </button>
+                  </div> */}
                 </div>
               </div>
 
@@ -201,9 +201,23 @@ const CompareAiAssistantDetail = (props: CompareAiAssistantDetailProps) => {
               <button 
                 class={styles.arrowButton}
                 onClick={() => {
-                  const currentIndex = characters.indexOf(selectedCharacter());
+                  const currentChar = selectedCharacter();
+                  // 현재 캐릭터가 확인되지 않았다면 자동으로 확인 처리
+                  if (!isCharacterChecked(props.cardId, currentChar)) {
+                    setCharacterChecked(props.cardId, currentChar, true);
+                  }
+                  
+                  const currentIndex = characters.indexOf(currentChar);
                   const nextIndex = currentIndex === characters.length - 1 ? 0 : currentIndex + 1;
                   setSelectedCharacter(characters[nextIndex]);
+                  
+                  // 모든 캐릭터가 확인되었는지 확인
+                  if (areAllCharactersChecked(props.cardId) && props.onAllCompleted) {
+                    // 약간의 딜레이를 주어 UI 업데이트 후 실행
+                    setTimeout(() => {
+                      props.onAllCompleted!();
+                    }, 100);
+                  }
                 }}
               >
                 다음

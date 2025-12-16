@@ -4,12 +4,13 @@ import { LoadingSpinner } from '../LoadingSpinner';
 import { CompareStepScriptInterface } from '../../data/scripts/4-2';
 import styles from './CompareAiAssistantSelection.module.css';
 import pageContainerStyles from '../../styles/PageContainer.module.css';
-import { setCardSelection } from '../../utils/aiCompareCheck';
+import { setCardSelection, clearCardData } from '../../utils/aiCompareCheck';
 
 type CompareAiAssistantSelectionProps = {
   content: CompareStepScriptInterface;
   cardId: number;
   onBack: () => void;
+  onSubmit?: () => void; // 제출 후 호출할 콜백 (선택사항)
 };
 
 const characterScripts  = [
@@ -74,8 +75,12 @@ const CompareAiAssistantSelection = (props: CompareAiAssistantSelectionProps) =>
     // 선택한 비서와 이유 저장
     setCardSelection(props.cardId, character, value);
     
-    // CompareAiAssistants로 돌아가기
-    props.onBack();
+    // 제출 후 콜백이 있으면 호출, 없으면 onBack 호출
+    if (props.onSubmit) {
+      props.onSubmit();
+    } else {
+      props.onBack();
+    }
   };
 
   const handleKeyPress = (e: KeyboardEvent) => {
@@ -109,6 +114,18 @@ const CompareAiAssistantSelection = (props: CompareAiAssistantSelectionProps) =>
           class={styles.container}
           style={{ 'background-image': `url(${backgroundImageUrl})` }}
         >
+          {/* 좌상단 뒤로 가기 버튼 */}
+          <button 
+            class={styles.backButton}
+            onClick={() => {
+              // 해당 주제의 aiCompareCheck 데이터 비우기
+              clearCardData(props.cardId);
+              props.onBack();
+            }}
+          >
+            이전
+          </button>
+          
           <div class={styles.contentWrapper}>
             {/* 헤더 */}
             <h1 class={styles.header}>상황에 맞게 대답한 비서를 골라보세요</h1>
