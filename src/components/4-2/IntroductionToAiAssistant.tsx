@@ -334,7 +334,7 @@ const IntroductionToAiAssistant = () => {
           class={styles.contentWrapper}
           style={{
             position: (currentScriptData()?.id && currentScriptData()!.id >= 3 && currentScriptData()!.id <= 8) ? 'absolute' : undefined,
-            top: (currentScriptData()?.id && currentScriptData()!.id >= 3 && currentScriptData()!.id <= 8) ? '80%' : undefined,
+            top: (currentScriptData()?.id && currentScriptData()!.id >= 3 && currentScriptData()!.id <= 8) ? '88%' : undefined,
           }}
         >
           <Show when={currentScriptData()?.maiPng && !isFading()}>
@@ -386,7 +386,7 @@ const IntroductionToAiAssistant = () => {
           </Show>
           
           <Show when={!currentScriptData()?.speechBubble && currentScriptData()?.scriptBgLine && !isFading()}>
-            <div class={`${styles.scriptBgLine} ${styles.fadeIn}`} style={{ position: 'relative' }}>
+            <div class={`${styles.scriptBgLine} ${styles.fadeIn}`} style={{ position:'relative' }}>
               {typingAnimation.displayedMessage()}
               <Show when={shouldShowPrevButton()}>
                 <button
@@ -408,7 +408,7 @@ const IntroductionToAiAssistant = () => {
           </Show>
 
           <Show when={!currentScriptData()?.speechBubble && !currentScriptData()?.scriptBgLine && !isFading()}>
-            <div class={`${styles.plainText} ${styles.fadeIn}`} style={{ position: 'relative' }}>
+            <div class={`${styles.plainText} ${styles.fadeIn}`} style={{ position: 'absolute', bottom: '3rem' }}>
               {typingAnimation.displayedMessage()}
               <Show when={shouldShowPrevButton()}>
                 <button
