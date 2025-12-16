@@ -646,7 +646,7 @@ const FinishingUpq = () => {
                     // ScoreBoard 표시
                     setShowScoreBoard(true);
                   }} 
-                  text="다음 수업으로"
+                  text="다음으로"
                 />
               </div>
             </Show>

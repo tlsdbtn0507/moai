@@ -345,7 +345,7 @@ const MakingAvatarsWithPrompting = () => {
                 <div class={styles.confirmButtonContainer}>
                   <ConfirmButton 
                     onClick={() => {showMakeAvatar();}} 
-                    text='만들어보자!'
+                    text='입력하러 가기!'
                   />
                 </div>
               </Show>
