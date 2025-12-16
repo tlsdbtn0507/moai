@@ -388,10 +388,14 @@ const ImportanceOfPrompting = () => {
               <SpeechBubble 
                 message={typingAnimation.displayedMessage()} 
                 size={600}
+                type='simple'
                 showNavigation={true}
                 onNext={proceedToNext}
                 onPrev={proceedToPrev}
-                scriptHistory={importanceOfPromptingScripts.map(s => ({ id: s.id, script: s.script }))}
+                // 현재 대본 포함, 이전 대본까지만 표시
+                scriptHistory={importanceOfPromptingScripts
+                  .slice(0, currentScriptIndex() + 1)
+                  .map(s => ({ id: s.id, script: s.script }))}
                 currentScriptIndex={currentScriptIndex()}
                 onModalStateChange={setIsModalOpen}
                 isComplete={() => {
@@ -443,7 +447,7 @@ const ImportanceOfPrompting = () => {
                 src={getS3ImageURL('1-3/compareFlower1.png')}
                 alt="Compare Flower"
                 style={{
-                  'z-index': 2,
+                  'z-index': 0,
                   position: 'absolute',
                   width: '150px',
                   top: '24%',
@@ -458,7 +462,7 @@ const ImportanceOfPrompting = () => {
                   src={getS3ImageURL('1-3/compareFlower2.png')}
                   alt="Compare Flower"
                   style={{
-                    'z-index': 2,
+                    'z-index': 0,
                     position: 'absolute',
                     width: '150px',
                     top: '24%',

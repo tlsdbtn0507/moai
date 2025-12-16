@@ -146,8 +146,8 @@
 
 .buttonContainer {
   position: absolute;
-  bottom: 3rem;
-  right: 24rem;
+  bottom: 4rem;
+  right: 15rem;
   display: flex;
   gap: 1rem;
 }

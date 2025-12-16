@@ -322,7 +322,7 @@ const MakingOwnAiAssistant = () => {
             <Show when={!showAiStudio()}>
               <img src={getS3ImageURL('4-2/presentHoldingMai.png')} class={styles.maiImage} />
               <div class={styles.maiImageWrapper}>
-                <SpeechBubble message={typingAnimation.displayedMessage()} size={600} />
+                <SpeechBubble type='simple' message={typingAnimation.displayedMessage()} size={600} />
               </div>
               <Show when={isTypingComplete()}>
                 <div class={styles.buttonWrapper}>

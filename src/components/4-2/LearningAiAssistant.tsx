@@ -347,6 +347,7 @@ const LearningAiAssistant = () => {
           <Show when={currentScriptData() && !isFading()}>
             <div class={`${styles.speechBubbleWrapper} ${styles.fadeIn}`}>
               <SpeechBubble 
+                type='simple'
                 message={displayMessage()} 
                 size={600}
                 showNavigation={true}

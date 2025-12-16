@@ -132,11 +132,7 @@ const DescribeImage = () => {
           
         }}
       >
-      <SpeechBubble 
-        message={typingAnimation.displayedMessage()}
-        scriptHistory={scriptHistory}
-        currentScriptIndex={currentScriptIndex()}
-      />
+      <SpeechBubble message={typingAnimation.displayedMessage()}/>
       {showSelectSunset() && (typingAnimation.displayedMessage().length === firstMessage.length || typingAnimation.isTypingSkipped()) && handleSelectRef && (
         <div style={{     
             position: 'absolute',

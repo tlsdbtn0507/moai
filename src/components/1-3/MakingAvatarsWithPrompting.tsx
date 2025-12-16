@@ -305,12 +305,11 @@ const MakingAvatarsWithPrompting = () => {
               {currentScriptImage()}
               <SpeechBubble 
                 size={550}
+                type='simple'
                 message={typingAnimation.displayedMessage()}
                 showNavigation={currentScript()?.id !== 3}
                 onNext={proceedToNext}
                 onPrev={proceedToPrev}
-                scriptHistory={makingAvatarsScripts.map(s => ({ id: s.id, script: s.script }))}
-                currentScriptIndex={scriptHistoryIndex()}
                 isComplete={() => {
                   const script = currentScript();
                   if (!script || script.id === 3 || script.id === 4) return false;

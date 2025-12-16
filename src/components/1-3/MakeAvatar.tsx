@@ -1,6 +1,7 @@
 import { For, createSignal, createEffect } from 'solid-js';
-import styles from './MakeAvatar.module.css';
 import { getS3ImageURL } from '../../utils/loading';
+
+import styles from './MakeAvatar.module.css';
 import Chatting from './Chatting';
 
 
