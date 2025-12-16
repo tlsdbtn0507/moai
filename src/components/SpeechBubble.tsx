@@ -9,6 +9,7 @@ type SpeechBubbleType = 'default' | 'simple' | 'smartie' | 'kylie' | 'logos';
 type ScriptItem = {
   id: number;
   script: string;
+  characterName?: string; // 캐릭터 이름 (선택사항)
 };
 
 type SpeechBubbleProps = {

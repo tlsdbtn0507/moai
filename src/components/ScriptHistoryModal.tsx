@@ -4,6 +4,7 @@ import styles from './ScriptHistoryModal.module.css';
 type ScriptItem = {
   id: number;
   script: string;
+  characterName?: string; // 캐릭터 이름 (선택사항)
 };
 
 type ScriptHistoryModalProps = {
@@ -78,7 +79,10 @@ export function ScriptHistoryModal(props: ScriptHistoryModalProps) {
                         : styles.past
                     }`}
                   >
-                    {script.script}
+                    {script.characterName && (
+                      <div class={styles.characterName}>{script.characterName}:</div>
+                    )}
+                    <div class={styles.scriptText}>{script.script}</div>
                   </div>
                 );
               }}
