@@ -79,9 +79,9 @@ const FinishingUpq = () => {
         clarity: 2,
         contextuality: 2,
         feedback: {
-          specificity: 'AI 비서 비교에 대한 생각을 더 구체적으로 표현해보세요!',
-          clarity: '비서 선택 이유를 더 명확하게 설명해보세요!',
-          contextuality: '상황과 맥락을 고려한 분석을 추가해보세요!'
+          specificity: 'AI 비서 비교 평가를 더 완성도 있게 작성해보세요!',
+          clarity: '비서 선택이 상황에 더 적합한지 설명해보세요!',
+          contextuality: '선택한 비서의 타당성을 더 명확히 표현해보세요!'
         }
       };
     }
@@ -91,9 +91,9 @@ const FinishingUpq = () => {
 "${combinedResponses}"
 
 이 평가를 다음 세 가지 기준으로 평가해주세요:
-- 구체성 (Specificity): 구체적인 예시나 이유가 얼마나 포함되어 있는가? (2점: 보통, 3점: 매우 구체적) - 최소 2점부터 시작
-- 명확성 (Clarity): 평가가 명확하고 이해하기 쉬운가? (2점: 보통, 3점: 매우 명확) - 최소 2점부터 시작
-- 맥락성 (Contextuality): 각 비서의 특징과 상황을 고려한 분석인가? (2점: 보통, 3점: 맥락 풍부) - 최소 2점부터 시작
+- 완성도 (specificity): 평가가 얼마나 완성도 있게 작성되었는가? (2점: 보통, 3점: 매우 완성도 높음) - 최소 2점부터 시작
+- 적합성 (clarity): 선택한 비서가 상황에 얼마나 적합한지 설명되었는가? (2점: 보통, 3점: 매우 적합) - 최소 2점부터 시작
+- 타당성 (contextuality): 선택한 비서의 타당성이 얼마나 명확하게 설명되었는가? (2점: 보통, 3점: 매우 타당) - 최소 2점부터 시작
 
 참고: 점수는 2점 또는 3점만 부여해주세요. 1점은 거의 주지 않도록 해주세요.
 
@@ -105,9 +105,9 @@ const FinishingUpq = () => {
   "clarity": 1-3,
   "contextuality": 1-3,
   "feedback": {
-    "specificity": "구체성에 대한 피드백 (친근하고 격려하는 톤)",
-    "clarity": "명확성에 대한 피드백 (친근하고 격려하는 톤)",
-    "contextuality": "맥락성에 대한 피드백 (친근하고 격려하는 톤)"
+    "specificity": "완성도에 대한 피드백 (친근하고 격려하는 톤)",
+    "clarity": "적합성에 대한 피드백 (친근하고 격려하는 톤)",
+    "contextuality": "타당성에 대한 피드백 (친근하고 격려하는 톤)"
   }
 }`;
 
@@ -143,9 +143,9 @@ const FinishingUpq = () => {
           clarity: 2,
           contextuality: 2,
           feedback: {
-            specificity: 'AI 비서 비교에 대한 생각을 더 구체적으로 표현해보세요!',
-            clarity: '비서 선택 이유를 더 명확하게 설명해보세요!',
-            contextuality: '상황과 맥락을 고려한 분석을 추가해보세요!'
+            specificity: 'AI 비서 비교 평가를 더 완성도 있게 작성해보세요!',
+            clarity: '비서 선택이 상황에 더 적합한지 설명해보세요!',
+            contextuality: '선택한 비서의 타당성을 더 명확히 표현해보세요!'
           }
         };
       }
@@ -163,9 +163,9 @@ const FinishingUpq = () => {
         clarity,
         contextuality,
         feedback: parsedResponse.feedback || {
-          specificity: 'AI 비서 비교에 대한 생각을 더 구체적으로 표현해보세요!',
-          clarity: '비서 선택 이유를 더 명확하게 설명해보세요!',
-          contextuality: '상황과 맥락을 고려한 분석을 추가해보세요!'
+          specificity: 'AI 비서 비교 평가를 더 완성도 있게 작성해보세요!',
+          clarity: '비서 선택이 상황에 더 적합한지 설명해보세요!',
+          contextuality: '선택한 비서의 타당성을 더 명확히 표현해보세요!'
         }
       };
     } catch (error) {
@@ -175,9 +175,9 @@ const FinishingUpq = () => {
         clarity: 2,
         contextuality: 2,
         feedback: {
-          specificity: 'AI 비서 비교에 대한 생각을 더 구체적으로 표현해보세요!',
-          clarity: '비서 선택 이유를 더 명확하게 설명해보세요!',
-          contextuality: '상황과 맥락을 고려한 분석을 추가해보세요!'
+          specificity: 'AI 비서 비교 평가를 더 완성도 있게 작성해보세요!',
+          clarity: '비서 선택이 상황에 더 적합한지 설명해보세요!',
+          contextuality: '선택한 비서의 타당성을 더 명확히 표현해보세요!'
         }
       };
     }
@@ -201,9 +201,9 @@ const FinishingUpq = () => {
         clarity: 2, 
         contextuality: 2,
         feedback: {
-          specificity: 'AI 비서 비교에 대한 생각을 더 구체적으로 표현해보세요!',
-          clarity: '비서 선택 이유를 더 명확하게 설명해보세요!',
-          contextuality: '상황과 맥락을 고려한 분석을 추가해보세요!'
+          specificity: 'AI 비서 비교 평가를 더 완성도 있게 작성해보세요!',
+          clarity: '비서 선택이 상황에 더 적합한지 설명해보세요!',
+          contextuality: '선택한 비서의 타당성을 더 명확히 표현해보세요!'
         }
       });
     } finally {
@@ -653,6 +653,11 @@ const FinishingUpq = () => {
             <Show when={showScoreBoard()}>
               <ScoreBoard 
                 scores={scores()}
+                labels={{
+                  specificity: '완성도',
+                  clarity: '적합성',
+                  contextuality: '타당성',
+                }}
                 onWorldMap={() => {
                   navigate('/worldmap');
                 }}

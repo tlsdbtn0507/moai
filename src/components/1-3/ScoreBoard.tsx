@@ -9,6 +9,12 @@ type ScoreBoardProps = {
   onWorldMap?: () => void;
   onSummary?: () => void;
   onNextLesson?: () => void;
+  // 평가 기준 라벨 커스터마이징 (4-2용)
+  labels?: {
+    specificity?: string;
+    clarity?: string;
+    contextuality?: string;
+  };
 };
 
 export function ScoreBoard(props: ScoreBoardProps) {
@@ -16,6 +22,13 @@ export function ScoreBoard(props: ScoreBoardProps) {
   const scoreBoardImageStyleURL = `url(${scoreBoardImageStyle})`;
   const reportRibbonImageStyle = getS3ImageURL('1-3/reportRebbon.png');
   const [showFeedback, setShowFeedback] = createSignal(false);
+  
+  // 기본 라벨 (1-3용)
+  const labels = {
+    specificity: props.labels?.specificity || '구체성',
+    clarity: props.labels?.clarity || '명확성',
+    contextuality: props.labels?.contextuality || '맥락성',
+  };
 
   return (
     <div class={styles.scoreBoard} style={{ 'background-image': scoreBoardImageStyleURL }}>
@@ -39,7 +52,7 @@ export function ScoreBoard(props: ScoreBoardProps) {
                 <div class={styles.feedbackContent}>
                   <div class={styles.feedbackSection}>
                     <div class={styles.feedbackLabel}>
-                      <span class={styles.feedbackLabelText}>구체성</span>
+                      <span class={styles.feedbackLabelText}>{labels.specificity}</span>
                     </div>
                     <div class={styles.feedbackText}>
                       {score().feedback.specificity}
@@ -48,7 +61,7 @@ export function ScoreBoard(props: ScoreBoardProps) {
                   {/* <div class={styles.feedbackDivider}></div> */}
                   <div class={styles.feedbackSection}>
                     <div class={styles.feedbackLabel}>
-                      <span class={styles.feedbackLabelText}>명확성</span>
+                      <span class={styles.feedbackLabelText}>{labels.clarity}</span>
                     </div>
                     <div class={styles.feedbackText}>
                       {score().feedback.clarity}
@@ -57,7 +70,7 @@ export function ScoreBoard(props: ScoreBoardProps) {
                   {/* <div class={styles.feedbackDivider}></div> */}
                   <div class={styles.feedbackSection}>
                     <div class={styles.feedbackLabel}>
-                      <span class={styles.feedbackLabelText}>맥락성</span>
+                      <span class={styles.feedbackLabelText}>{labels.contextuality}</span>
                     </div>
                     <div class={styles.feedbackText}>
                       {score().feedback.contextuality}
@@ -68,21 +81,21 @@ export function ScoreBoard(props: ScoreBoardProps) {
             >
               <>
                 <div class={styles.scoreRow}>
-                  <img src={getS3ImageURL(`1-3/star${score().specificity}.png`)} alt="구체성 별점" />
+                  <img src={getS3ImageURL(`1-3/star${score().specificity}.png`)} alt={`${labels.specificity} 별점`} />
                   <div class={styles.scoreTitle}>
-                    <span class={styles.scoreTitleText}>구체성</span>
+                    <span class={styles.scoreTitleText}>{labels.specificity}</span>
                   </div>
                 </div>
                 <div class={styles.scoreRow}>
-                  <img src={getS3ImageURL(`1-3/star${score().clarity}.png`)} alt="명확성 별점" />
+                  <img src={getS3ImageURL(`1-3/star${score().clarity}.png`)} alt={`${labels.clarity} 별점`} />
                   <div class={styles.scoreTitle}>
-                    <span class={styles.scoreTitleText}>명확성</span>
+                    <span class={styles.scoreTitleText}>{labels.clarity}</span>
                   </div>
                 </div>
                 <div class={styles.scoreRow}>
-                  <img src={getS3ImageURL(`1-3/star${score().contextuality}.png`)} alt="맥락성 별점" />
+                  <img src={getS3ImageURL(`1-3/star${score().contextuality}.png`)} alt={`${labels.contextuality} 별점`} />
                   <div class={styles.scoreTitle}>
-                    <span class={styles.scoreTitleText}>맥락성</span>
+                    <span class={styles.scoreTitleText}>{labels.contextuality}</span>
                   </div>
                 </div>
               </>

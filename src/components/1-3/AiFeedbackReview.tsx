@@ -274,8 +274,6 @@ const AiFeedbackReview = () => {
                     showNavigation={true}
                     onNext={proceedToNext}
                     onPrev={proceedToPrev}
-                    scriptHistory={aiFeedbackReviewScripts.map(s => ({ id: s.id, script: s.script }))}
-                    currentScriptIndex={currentScriptIndex()}
                     isComplete={() => {
                       const script = currentScript();
                       if (!script) return false;

@@ -73,7 +73,8 @@ const CharacterResult = (props: CharacterResultProps) => {
                 <div class={styles.speechBubbleContainer}>
                     <SpeechBubble 
                         size={550}
-                        message={typingAnimation.displayedMessage() || scriptText}
+                        type='simple'
+                        message={typingAnimation.displayedMessage()}
                     />
                 </div>
 
