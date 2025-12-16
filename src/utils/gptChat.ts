@@ -180,23 +180,14 @@ export function getCompletionMessage(
     // 현재 완료된 옵션들을 포함한 새로운 완료 목록
     const newCompletedOptions = [...completedOptions, optionId];
     
-    // 아직 완료되지 않은 옵션들 찾기
-    const remainingOptions = allOptions
-        .filter(opt => !newCompletedOptions.includes(opt.id))
-        .map(opt => {
-            // 조사 처리: 받침이 있으면 '을', 없으면 '를'
-            const lastChar = opt.name[opt.name.length - 1];
-            const hasFinalConsonant = (lastChar.charCodeAt(0) - 0xAC00) % 28 !== 0;
-            return hasFinalConsonant ? `${opt.name}을` : `${opt.name}를`;
-        });
-
     // 모든 옵션이 완료되었는지 확인
-    if (remainingOptions.length === 0) {
+    const allOptionsCompleted = allOptions.every(opt => newCompletedOptions.includes(opt.id));
+    
+    if (allOptionsCompleted) {
         return '모든 입력이 완료되었어! 캐릭터 묘사 완료! 🎉';
     }
 
-    const remainingOptionsText = remainingOptions.join(', ');
-    return `${currentOptionName} 입력이 완료되었어! 이제 ${remainingOptionsText} 클릭해서 입력하자!`;
+    return `${currentOptionName} 입력이 완료되었어!\n이제 다른 요소를 입력하자!`;
 }
 
 // 프롬프트 평가 타입
@@ -426,7 +417,16 @@ export async function evaluatePrompts(
         return scores;
     } catch (error) {
         // 기본값 반환
-        return { specificity: 2, clarity: 2, contextuality: 2 };
+        return { 
+            specificity: 2, 
+            clarity: 2, 
+            contextuality: 2,
+            feedback: {
+                specificity: '구체적인 세부사항을 더 추가해보면 좋아요!',
+                clarity: '표현을 더 명확하게 하면 이해도가 올라가요!',
+                contextuality: '상황이나 맥락을 추가하면 더 완벽해져요!'
+            }
+        };
     }
 }
 

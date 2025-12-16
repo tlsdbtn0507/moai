@@ -18,7 +18,7 @@ export async function generateImageFromPrompt(prompt: string): Promise<string> {
     },
     body: JSON.stringify({
       model: 'gpt-image-1',
-      prompt: `${prompt} cartoon / flat / stylized / vector한 분위기와 스타일 적용`,
+      prompt: `${prompt} cartoon / flat / stylized / vector한 분위기와 스타일 적용. 전체 캐릭터가 잘리지 않고 완전히 보이도록 캐릭터 주변에 최소 100px의 여백(padding)을 두고 생성해주세요. full body visible, complete character view, no cropping, 100px padding around character`,
       quality: 'low',
       size: '1024x1024',
     }),
