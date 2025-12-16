@@ -28,6 +28,7 @@ export function CompareModal(props: CompareModalProps) {
   const [showComparison, setShowComparison] = createSignal(false);
   const [description, setDescription] = createSignal('');
   const [selectedImage, setSelectedImage] = createSignal<'mt' | 'sea' | 'city' | null>(null);
+  const [hasStarted, setHasStarted] = createSignal(false); // 이미 시작했는지 추적
   
   // 타이핑 애니메이션 훅
   const typingAnimation = useTypingAnimation({ typingSpeed: 150 });
@@ -81,6 +82,7 @@ export function CompareModal(props: CompareModalProps) {
       typingAnimation.setDisplayedMessage('');
       typingAnimation.resetSkipState();
       audioPlayback.stopAudio();
+      setHasStarted(false); // 플래그 리셋
       return;
     }
 
@@ -90,18 +92,24 @@ export function CompareModal(props: CompareModalProps) {
       return;
     }
 
+    // 이미 시작했거나 타이핑 애니메이션이 완료되었으면 실행하지 않음
+    if (hasStarted() || typingAnimation.displayedMessage().length === fullMessage.length) {
+      return;
+    }
+
     // 스킵 상태 초기화 후 오디오/타이핑 시작
-      typingAnimation.resetSkipState();
-      
-      if (!audioPlayback.isPlaying()) {
-        audioPlayback.playAudio('1-3_Introduction_3.mp3', {
-          onLoaded: () => {
-        // 오디오 재생 후 0.5초 뒤에 타이핑 애니메이션 시작
-        setTimeout(() => {
-              typingAnimation.startTyping(fullMessage);
-        }, 500);
-          },
-        });
+    typingAnimation.resetSkipState();
+    setHasStarted(true); // 시작 플래그 설정
+    
+    if (!audioPlayback.isPlaying()) {
+      audioPlayback.playAudio('1-3_Introduction_3.mp3', {
+        onLoaded: () => {
+          // 오디오 재생 후 0.5초 뒤에 타이핑 애니메이션 시작
+          setTimeout(() => {
+            typingAnimation.startTyping(fullMessage);
+          }, 500);
+        },
+      });
     }
   });
 
