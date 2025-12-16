@@ -63,6 +63,29 @@ export function DescribeModal(props: DescribeModalProps) {
         <div class={styles.modal} onClick={(e) => e.stopPropagation()}>
             <h1 class={styles.modalTitle}>이 그림을 MAI에게 설명해보자!</h1>
           <Show when={isReady()} fallback={<LoadingSpinner />}>
+          <button
+        style={{
+          position: 'absolute',
+          top: '3.5rem',
+          right: '9.5rem',
+          width: '40px',
+          height: '40px',
+          'border-radius': '999px',
+          border: 'none',
+          background: 'rgba(255, 255, 255, 0.9)',
+          cursor: 'pointer',
+          'font-size': '1.2rem',
+          'font-weight': 700,
+          'box-shadow': '0 2px 6px rgba(0, 0, 0, 0.2)',
+          'z-index': 10,
+        }}
+        onClick={() => {
+          localStorage.removeItem('describeSelectedValue');
+          props.onClose?.();
+        }}
+      >
+        ✕
+      </button>
             {imageUrl() && (
               <img 
                 src={imageUrl()!} 

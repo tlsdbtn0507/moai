@@ -1,4 +1,5 @@
 import { createSignal, onMount, Show } from 'solid-js';
+import { useNavigate, useParams } from '@solidjs/router';
 import pageContainerStyles from '../../styles/PageContainer.module.css';
 import { getS3ImageURL, preloadImages } from '../../utils/loading';
 import { DescribeModal } from './modal/DescribeModal';
@@ -9,6 +10,8 @@ import { generateImageFromPrompt } from '../../utils/gptImage';
 import { useDescribeImageStore } from '../../store/1/3/describeImageStore';
 
 const CompareImage = () => {
+  const navigate = useNavigate();
+  const params = useParams();
   const backgroundImageStyle = getS3ImageURL('sunsetOfMoai.png');
   const backgroundImageStyleURL = `url(${backgroundImageStyle})`;
 
@@ -67,12 +70,23 @@ const CompareImage = () => {
     <div
       class={pageContainerStyles.container}
       style={{ 'background-image': backgroundImageStyleURL }}
+      onClick={() => {
+        localStorage.removeItem('describeSelectedValue');
+        const worldId = params.worldId || '1';
+        const classId = params.classId || '3';
+        navigate(`/${worldId}/${classId}/1`);
+      }}
     >
       <Show when={isReady()} fallback={<LoadingSpinner />}>
         <Show when={isModalOpen()}>
           <DescribeModal
             isOpen={isModalOpen()}
-            onClose={() => setIsModalOpen(false)}
+            onClose={() => {
+              setIsModalOpen(false);
+              const worldId = params.worldId || '1';
+              const classId = params.classId || '3';
+              navigate(`/${worldId}/${classId}/1`);
+            }}
             selectedValue={selectedValue()}
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting()}
@@ -92,7 +106,7 @@ const CompareImage = () => {
                   setErrorMessage(null);
                   setIsModalOpen(true);
                   setIsCompareModalOpen(false);
-                  localStorage.removeItem('describeGeneratedImageUrl');
+                  localStorage.removeItem('describeSelectedValue');
                 }}
               />
           )}
