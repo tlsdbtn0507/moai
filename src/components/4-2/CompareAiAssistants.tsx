@@ -147,7 +147,7 @@ const CompareAiAssistants = () => {
                         setShowSelectionFlow(true);
                       }}
                       >
-                        넘어가기
+                        다음으로
                       </button>
               </div>
                   </Show>

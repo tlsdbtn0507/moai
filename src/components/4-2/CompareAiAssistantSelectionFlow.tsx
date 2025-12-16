@@ -49,7 +49,7 @@ export function CompareAiAssistantSelectionFlow(props: CompareAiAssistantSelecti
               onClick={props.onAllComplete}
               class={styles.nextButton}
             >
-              넘어가기
+              다음으로
             </button>
           </div>
         </Show>

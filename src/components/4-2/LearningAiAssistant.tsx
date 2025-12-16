@@ -359,7 +359,7 @@ const LearningAiAssistant = () => {
               onClick={goToNextStep}
               class={`${styles.button} ${styles.buttonPrimary}`}
             >
-              넘어가기
+              다음으로
             </button>
           </div>
         </Show>
