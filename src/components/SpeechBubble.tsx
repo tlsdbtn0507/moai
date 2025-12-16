@@ -166,7 +166,7 @@ export function SpeechBubble(props: SpeechBubbleProps) {
             이전
           </button>
         </Show>
-        <p style={{ 'font-size': '1.4rem', 'font-weight': '700', color: '#3b1a07', 'white-space': 'pre-line' }}>{props.message}</p>
+        <p style={{ 'font-size': '1.4rem', color: '#3b1a07', 'white-space': 'pre-line' }}>{props.message}</p>
         <Show when={shouldShowNextButton()}>
           <button
             onClick={props.onNext}
