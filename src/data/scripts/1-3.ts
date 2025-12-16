@@ -88,7 +88,7 @@ export const importanceOfPromptingScripts: ScriptInterface[] = [
   },
   {
     id: 10,
-    concept: 'AI가 혼동하지 않도록 구체적이고 명확하게 말하는 것',
+    concept: 'AI가 혼동하지 않도록 <strong>구체적이고 명확하게</strong> 말하는 것',
     script: 'AI가 혼동하지 않도록\n구체적이고 명확하게 말하는 것이야.',
     voice: '1-3_Development_10.mp3',
     title: '좋은 프롬프팅',
@@ -96,7 +96,7 @@ export const importanceOfPromptingScripts: ScriptInterface[] = [
   },
   {
     id: 11,
-    concept: 'AI가 혼동하지 않도록 구체적이고 명확하게 말하는 것',
+    concept: 'AI가 혼동하지 않도록 <strong>구체적이고 명확하게</strong> 말하는 것',
     script: '프롬프팅을 좋게 하려면 구체성,\n명확성, 맥락성이 있어야해.',
     voice: '1-3_Development_11.mp3',
     title: '좋은 프롬프팅',
@@ -104,7 +104,7 @@ export const importanceOfPromptingScripts: ScriptInterface[] = [
   },
   {
     id: 12,
-    concept: 'AI가 혼동하지 않도록 구체적이고 명확하게 말하는 것',
+    concept: 'AI가 혼동하지 않도록 <strong>구체적이고 명확하게</strong> 말하는 것',
     script: '구체적으로 필요한 정보를 포함하고,',
     voice: '1-3_Development_12.mp3',
     title: '좋은 프롬프팅',
@@ -112,7 +112,7 @@ export const importanceOfPromptingScripts: ScriptInterface[] = [
   },
   {
     id: 13,
-    concept: 'AI가 혼동하지 않도록 구체적이고 명확하게 말하는 것',
+    concept: 'AI가 혼동하지 않도록 <strong>구체적이고 명확하게</strong> 말하는 것',
     script: '애매한 단어 대신 정확한 표현을 사용하고,',
     voice: '1-3_Development_13.mp3',
     title: '좋은 프롬프팅',
@@ -120,7 +120,7 @@ export const importanceOfPromptingScripts: ScriptInterface[] = [
   },
   {
     id: 14,
-    concept: 'AI가 혼동하지 않도록 구체적이고 명확하게 말하는 것',
+    concept: 'AI가 혼동하지 않도록 <strong>구체적이고 명확하게</strong> 말하는 것',
     script: '상황, 감정, 배경 같은 추가 정보가 있어야하지',
     voice: '1-3_Development_14.mp3',
     title: '좋은 프롬프팅',

@@ -21,6 +21,7 @@ const ImportanceOfPrompting = () => {
   const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
   const [isModalOpen, setIsModalOpen] = createSignal(false); // 모달 상태
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null; // 자동 진행 타이머
+  let conceptDescriptionRef: HTMLSpanElement | undefined; // concept description ref
   const navigate = useNavigate();
   const params = useParams();
   
@@ -209,6 +210,14 @@ const ImportanceOfPrompting = () => {
     },
   });
 
+  // concept의 HTML 렌더링 처리
+  createEffect(() => {
+    const concept = currentConcept();
+    if (conceptDescriptionRef) {
+      conceptDescriptionRef.innerHTML = concept || '';
+    }
+  });
+
   // 스크립트 변경 시 처리
   createEffect(() => {
     const script = currentScript();
@@ -362,7 +371,16 @@ const ImportanceOfPrompting = () => {
           <Show when={currentConcept()}>
             <div class={styles.conceptContainer}>
               <span class={styles.conceptTitle}>개념</span>
-              <span class={styles.conceptDescription}>{currentConcept()}</span>
+              <span 
+                class={styles.conceptDescription} 
+                ref={(el) => {
+                  conceptDescriptionRef = el;
+                  // ref가 설정될 때 현재 concept 값으로 초기화
+                  if (el && currentConcept()) {
+                    el.innerHTML = currentConcept() || '';
+                  }
+                }}
+              ></span>
             </div>
           </Show>
           <div class={styles.content}>
@@ -425,7 +443,7 @@ const ImportanceOfPrompting = () => {
                 src={getS3ImageURL('1-3/compareFlower1.png')}
                 alt="Compare Flower"
                 style={{
-                  'z-index': 10,
+                  'z-index': 2,
                   position: 'absolute',
                   width: '150px',
                   top: '24%',
@@ -440,7 +458,7 @@ const ImportanceOfPrompting = () => {
                   src={getS3ImageURL('1-3/compareFlower2.png')}
                   alt="Compare Flower"
                   style={{
-                    'z-index': 10,
+                    'z-index': 2,
                     position: 'absolute',
                     width: '150px',
                     top: '24%',
@@ -486,7 +504,7 @@ const ImportanceOfPrompting = () => {
             <div 
               class={styles.characterContainer}
               style={{
-                left: currentScriptIndex() >= 8 ? '66%' : '60%',
+                left: currentScriptIndex() >= 8 ? '69%' : '66%',
               }}
             >
               <img
@@ -502,7 +520,7 @@ const ImportanceOfPrompting = () => {
                 onClick={goToNextStep}
                 class={styles.nextButton}
               >
-                넘어가기
+                다음으로
               </button>
             </div>
           </Show>
