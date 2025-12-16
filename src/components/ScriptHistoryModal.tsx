@@ -82,7 +82,10 @@ export function ScriptHistoryModal(props: ScriptHistoryModalProps) {
                     {script.characterName && (
                       <div class={styles.characterName}>{script.characterName}:</div>
                     )}
-                    <div class={styles.scriptText}>{script.script}</div>
+                    <div
+                      class={styles.scriptText}
+                      innerHTML={script.script}
+                    />
                   </div>
                 );
               }}
