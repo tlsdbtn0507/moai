@@ -56,15 +56,18 @@
   width: fit-content;
   padding: 0.5rem 2rem;
   border-radius: 2rem;
+  z-index: 2;
 }
 
 .conceptText {
-  font-size: 1.2rem;
-  width: 480px;
+  font-size: 1.4rem;
+  width: 550px;
   text-align: center;
   padding: 1rem;
   border: 1px solid gray;
   border-radius: 1rem;
+  position: absolute;
+  top: 2.5rem;
 }
 
 .speechArea {

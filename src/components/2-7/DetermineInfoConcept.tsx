@@ -188,7 +188,7 @@ const DetermineInfoConcept = () => {
 
           <Show when={currentConcept()}>
             <div class={styles.conceptBox}>
-              <span class={styles.conceptTitle}>개념</span>
+              <span class={styles.conceptTitle}>{currentTitle()}</span>
               <span 
                 class={styles.conceptText}
                 ref={(el) => {
