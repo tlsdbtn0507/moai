@@ -275,6 +275,12 @@ export async function evaluatePrompts(
 
         const response = await callGPT4Mini(messages);
         
+        // 출력 검증 (내부 평가 함수이므로 입력은 안전하다고 가정)
+        const moderationResult = await checkContentSafety(response);
+        const validatedResponse = moderationResult.isSafe 
+            ? response 
+            : '{"sunset":{"specificity":2,"clarity":2,"contextuality":2,"feedback":{"specificity":"구체적인 세부사항을 더 추가해보면 좋아요!","clarity":"표현을 더 명확하게 하면 이해도가 올라가요!","contextuality":"상황이나 맥락을 추가하면 더 완벽해져요!"}},"character":{"specificity":2,"clarity":2,"contextuality":2,"feedback":{"specificity":"구체적인 세부사항을 더 추가해보면 좋아요!","clarity":"표현을 더 명확하게 하면 이해도가 올라가요!","contextuality":"상황이나 맥락을 추가하면 더 완벽해져요!"}}}';
+        
         // JSON 파싱 시도
         let parsedResponse: {
             sunset?: { 
@@ -301,11 +307,11 @@ export async function evaluatePrompts(
         
         try {
             // JSON 코드 블록 제거
-            const jsonMatch = response.match(/\{[\s\S]*\}/);
+            const jsonMatch = validatedResponse.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
                 parsedResponse = JSON.parse(jsonMatch[0]);
             } else {
-                parsedResponse = JSON.parse(response);
+                parsedResponse = JSON.parse(validatedResponse);
             }
         } catch (parseError) {
             // 기본값 반환
@@ -429,5 +435,191 @@ export async function evaluatePrompts(
             }
         };
     }
+}
+
+// ==================== AI 방화벽 기능 ====================
+
+const MODERATION_ENDPOINT = 'https://api.openai.com/v1/moderations';
+
+/**
+ * Moderation API를 사용하여 콘텐츠 안전성 검증
+ * @param content 검증할 콘텐츠
+ * @returns 검증 결과
+ */
+export async function checkContentSafety(content: string): Promise<{
+    isSafe: boolean;
+    flagged: boolean;
+    categories?: Record<string, boolean>;
+    categoryScores?: Record<string, number>;
+}> {
+    const apiKey = import.meta.env.VITE_GPT_API_KEY;
+    if (!apiKey) {
+        throw new Error('VITE_GPT_API_KEY가 설정되지 않았습니다.');
+    }
+
+    try {
+        const response = await fetch(MODERATION_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+                input: content,
+                model: 'omni-moderation-latest', // 최신 모더레이션 모델
+            }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Moderation API 호출 실패:', errorText);
+            // 에러 발생 시 안전을 위해 차단
+            return {
+                isSafe: false,
+                flagged: true,
+            };
+        }
+
+        const data = await response.json();
+        const result = data.results[0];
+
+        return {
+            isSafe: !result.flagged,
+            flagged: result.flagged,
+            categories: result.categories,
+            categoryScores: result.category_scores,
+        };
+    } catch (error) {
+        console.error('Moderation API 에러:', error);
+        // 에러 발생 시 안전을 위해 차단
+        return {
+            isSafe: false,
+            flagged: true,
+        };
+    }
+}
+
+/**
+ * 사용자 입력 검증 (1단계: Moderation API)
+ * @param userInput 사용자 입력
+ * @returns 검증 결과 및 안전한 메시지
+ */
+export async function validateUserInput(userInput: string): Promise<{
+    isValid: boolean;
+    message: string;
+}> {
+    const moderationResult = await checkContentSafety(userInput);
+
+    if (!moderationResult.isSafe) {
+        return {
+            isValid: false,
+            message: '죄송합니다. 부적절한 내용이 감지되었습니다. 교육 목적에 맞는 질문을 해주세요.',
+        };
+    }
+
+    return {
+        isValid: true,
+        message: userInput,
+    };
+}
+
+/**
+ * AI 응답 검증 (출력 방화벽)
+ * @param aiResponse AI 응답
+ * @param maxRetries 최대 재시도 횟수
+ * @returns 검증된 안전한 응답 또는 차단 메시지
+ */
+export async function validateAIResponse(
+    aiResponse: string,
+    maxRetries: number = 3
+): Promise<{
+    isValid: boolean;
+    safeResponse: string;
+}> {
+    const moderationResult = await checkContentSafety(aiResponse);
+
+    if (moderationResult.isSafe) {
+        return {
+            isValid: true,
+            safeResponse: aiResponse,
+        };
+    }
+
+    // 부적절한 응답이 감지된 경우
+    console.warn('부적절한 AI 응답 감지:', {
+        flagged: moderationResult.flagged,
+        categories: moderationResult.categories,
+    });
+
+    return {
+        isValid: false,
+        safeResponse: '죄송합니다. 적절하지 않은 응답이 생성되었습니다. 다른 질문을 해주시겠어요?',
+    };
+}
+
+/**
+ * 안전한 GPT 호출 (입력 및 출력 모두 검증)
+ * @param messages 대화 메시지 배열
+ * @param options 옵션 설정
+ * @returns 안전한 AI 응답
+ */
+export async function callGPT4MiniWithSafety(
+    messages: ChatMessage[],
+    options: {
+        skipInputValidation?: boolean; // 입력 검증 스킵 (시스템 메시지 등)
+        skipOutputValidation?: boolean; // 출력 검증 스킵
+        maxRetries?: number; // 최대 재시도 횟수
+    } = {}
+): Promise<string> {
+    const {
+        skipInputValidation = false,
+        skipOutputValidation = false,
+        maxRetries = 3,
+    } = options;
+
+    // 1단계: 사용자 입력 검증 (마지막 user 메시지만 검증)
+    if (!skipInputValidation) {
+        const lastUserMessage = messages
+            .slice()
+            .reverse()
+            .find((msg) => msg.role === 'user');
+
+        if (lastUserMessage) {
+            const inputValidation = await validateUserInput(lastUserMessage.content);
+            if (!inputValidation.isValid) {
+                throw new Error(inputValidation.message);
+            }
+        }
+    }
+
+    // 2단계: GPT API 호출
+    let aiResponse: string | undefined = undefined;
+    let attempts = 0;
+
+    while (attempts < maxRetries) {
+        try {
+            aiResponse = await callGPT4Mini(messages);
+            break;
+        } catch (error) {
+            attempts++;
+            if (attempts >= maxRetries) {
+                throw error;
+            }
+            // 재시도 전 잠시 대기
+            await new Promise((resolve) => setTimeout(resolve, 1000 * attempts));
+        }
+    }
+
+    if (aiResponse === undefined || aiResponse === null) {
+        throw new Error('AI 응답을 받지 못했습니다.');
+    }
+
+    // 3단계: AI 응답 검증 (출력 방화벽)
+    if (!skipOutputValidation) {
+        const outputValidation = await validateAIResponse(aiResponse, maxRetries);
+        return outputValidation.safeResponse;
+    }
+
+    return aiResponse;
 }
 

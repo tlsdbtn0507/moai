@@ -1,7 +1,7 @@
 import { For, createSignal, createEffect, Show } from 'solid-js';
 import styles from './Chatting.module.css';
 import { getS3ImageURL } from '../../utils/loading';
-import { callGPT4Mini, getValidationPrompt, getCompletionMessage } from '../../utils/gptChat';
+import { callGPT4MiniWithSafety, getValidationPrompt, getCompletionMessage } from '../../utils/gptChat';
 import { generateImageFromPrompt } from '../../utils/gptImage';
 import { useCharacterImageStore } from '../../store/1/3/characterImageStore';
 import { LoadingModal } from './modal/LoadingModal';
@@ -380,7 +380,11 @@ const Chatting = (props: ChattingProps) => {
                         }
                     ];
 
-                    const gptResponse = await callGPT4Mini(chatHistory);
+                    // 입력은 이미 검증되었으므로 skipInputValidation=true, 출력은 검증 필요
+                    const gptResponse = await callGPT4MiniWithSafety(chatHistory, {
+                        skipInputValidation: true,
+                        skipOutputValidation: false,
+                    });
                     const normalizedResponse = gptResponse.trim().toUpperCase();
                     
                     const completionKeywords = ['COMPLETE', '완료', '넘어가자', '넘어가', '다음으로'];
@@ -552,7 +556,11 @@ const Chatting = (props: ChattingProps) => {
             ];
 
             // GPT API 호출
-            const gptResponse = await callGPT4Mini(chatHistory);
+            // 입력은 이미 검증되었으므로 skipInputValidation=true, 출력은 검증 필요
+            const gptResponse = await callGPT4MiniWithSafety(chatHistory, {
+                skipInputValidation: true,
+                skipOutputValidation: false,
+            });
             const normalizedResponse = gptResponse.trim().toUpperCase();
             
             // 완료를 의미하는 키워드들

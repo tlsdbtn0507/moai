@@ -8,7 +8,7 @@ import { SpeechBubble } from '../SpeechBubble';
 import { ScoreBoard } from '../1-3/ScoreBoard';
 import { feedbackScripts } from '../../data/scripts/2-7';
 import { useMoaiConversation, type MoaiConversationScript } from '../../utils/hooks/useMoaiConversation';
-import { callGPT4Mini, type PromptScores } from '../../utils/gptChat';
+import { callGPT4MiniWithSafety, type PromptScores } from '../../utils/gptChat';
 
 // feedbackScripts를 MoaiConversationScript 형식으로 변환
 const reviewScripts: MoaiConversationScript[] = feedbackScripts.map(script => ({
@@ -95,7 +95,11 @@ const DetermineInfoReview = () => {
         },
       ];
 
-      const response = await callGPT4Mini(messages);
+      // 평가용 내부 프롬프트이므로 입력 검증 스킵, 출력 검증만 수행
+      const response = await callGPT4MiniWithSafety(messages, {
+        skipInputValidation: true,
+        skipOutputValidation: false,
+      });
       
       // JSON 파싱 시도
       let parsedResponse: PromptScores;

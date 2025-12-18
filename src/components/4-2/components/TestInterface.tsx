@@ -4,7 +4,7 @@ import styles from './TestInterface.module.css';
 import pageContainerStyles from '../../../styles/PageContainer.module.css';
 import { aiAssistantElements } from '../../../store/4/aiAssistantElementStore';
 import { AI_ASSISTANT_TYPES } from '../../../data/aiAssistantTypes';
-import { callGPT4Mini } from '../../../utils/gptChat';
+import { callGPT4MiniWithSafety } from '../../../utils/gptChat';
 
 interface TestInterfaceProps {
   aiAssistantName: string;
@@ -237,11 +237,14 @@ const TestInterface = (props: TestInterfaceProps) => {
         }
       ];
 
-      const response = await callGPT4Mini(chatMessages);
+      const response = await callGPT4MiniWithSafety(chatMessages);
       addMessage(response, 'ai');
     } catch (error) {
       console.error('GPT API 호출 오류:', error);
-      addMessage('죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.', 'ai');
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : '죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.';
+      addMessage(errorMessage, 'ai');
     } finally {
       setIsLoading(false);
     }

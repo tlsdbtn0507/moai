@@ -13,7 +13,7 @@ import { useAudioPlayback } from '../../utils/hooks/useAudioPlayback';
 import { useSkipControls } from '../../utils/hooks/useSkipControls';
 import { ConfirmButton } from '../1-3/ConfirmButton';
 import { ScoreBoard } from '../1-3/ScoreBoard';
-import { callGPT4Mini, type PromptScores } from '../../utils/gptChat';
+import { callGPT4MiniWithSafety, type PromptScores } from '../../utils/gptChat';
 import { getAllCardSelections, resetAiCompareCheck } from '../../utils/aiCompareCheck';
 
 const FinishingUpq = () => {
@@ -124,7 +124,11 @@ const FinishingUpq = () => {
         },
       ];
 
-      const response = await callGPT4Mini(messages);
+      // 평가용 내부 프롬프트이므로 입력 검증 스킵, 출력 검증만 수행
+      const response = await callGPT4MiniWithSafety(messages, {
+        skipInputValidation: true,
+        skipOutputValidation: false,
+      });
       
       // JSON 파싱 시도
       let parsedResponse: PromptScores;
