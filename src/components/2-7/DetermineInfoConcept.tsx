@@ -3,10 +3,11 @@ import { useNavigate, useParams } from '@solidjs/router';
 import { getS3ImageURL, preloadImages } from '../../utils/loading';
 import { SpeechBubble } from '../SpeechBubble';
 import { LoadingSpinner } from '../LoadingSpinner';
-import pageContainerStyles from '../../styles/PageContainer.module.css';
-import styles from './DetermineInfoConcept.module.css';
 import { conceptScripts } from '../../data/scripts/2-7';
 import { useMoaiConversation } from '../../utils/hooks/useMoaiConversation';
+
+import pageContainerStyles from '../../styles/PageContainer.module.css';
+import styles from './DetermineInfoConcept.module.css';
 
 const DetermineInfoConcept = () => {
   const [isReady, setIsReady] = createSignal(false);
@@ -20,14 +21,22 @@ const DetermineInfoConcept = () => {
   const [characterImageUrl, setCharacterImageUrl] = createSignal(
     getS3ImageURL(conceptScripts[0]?.maiPic || '2-7/mai.png')
   );
+  let conceptDescriptionRef: HTMLSpanElement | undefined; // concept description ref
   const navigate = useNavigate();
   const params = useParams();
 
-  // voiceUrl -> voice 필드로 변환하여 훅에 전달
+  // HTML 태그 제거 유틸 (타이핑용 순수 텍스트)
+  const stripHtmlTags = (text: string): string =>
+    text.replace(/<\/?[^>]+(>|$)/g, '');
+
+  // voiceUrl -> voice 필드로 변환하고, 타이핑용으로는 HTML 태그 제거한 버전 사용
+  // 원본 script는 보존하여 완료 후 HTML 렌더링에 사용
   const conversationScripts = createMemo(() =>
     conceptScripts.map((s) => ({
       ...s,
       voice: s.voiceUrl,
+      originalScript: s.script, // 원본 스크립트 보존
+      script: stripHtmlTags(s.script), // 타이핑용으로는 HTML 태그 제거
     }))
   );
 
@@ -51,6 +60,34 @@ const DetermineInfoConcept = () => {
     setCharacterImageUrl(getS3ImageURL(script.maiPic));
     setCurrentContent(script.contentPic ? getS3ImageURL(script.contentPic) : undefined);
   });
+
+  // concept의 HTML 렌더링 처리
+  createEffect(() => {
+    const concept = currentConcept();
+    if (conceptDescriptionRef) {
+      conceptDescriptionRef.innerHTML = concept || '';
+    }
+  });
+
+  // 현재 대사를 HTML 포함 버전으로 보여줄지 결정 (타이핑 완료 시)
+  const displayMessage = () => {
+    const script = conversation.currentScript();
+    if (!script) return conversation.displayedMessage();
+
+    // originalScript가 있으면 원본 사용, 없으면 현재 script 사용 (하위 호환성)
+    const originalScript = (script as any).originalScript || script.script;
+    const plainScript = script.script; // 이미 HTML 태그가 제거된 버전
+    
+    const isTypingComplete =
+      conversation.displayedMessage().length === plainScript.length ||
+      conversation.isComplete();
+    const isAudioComplete = !conversation.isAudioPlaying();
+
+    const isComplete = isTypingComplete && isAudioComplete;
+
+    // 완료 전에는 순수 텍스트(타이핑), 완료 후에는 HTML 포함 원본 스크립트
+    return isComplete ? originalScript : conversation.displayedMessage();
+  };
 
   // 컨텐츠 이미지 위치 동적 스타일
   const contentPositionStyle = createMemo<JSX.CSSProperties>(() => {
@@ -152,7 +189,16 @@ const DetermineInfoConcept = () => {
           <Show when={currentConcept()}>
             <div class={styles.conceptBox}>
               <span class={styles.conceptTitle}>개념</span>
-              <span class={styles.conceptText}>{currentConcept()}</span>
+              <span 
+                class={styles.conceptText}
+                ref={(el) => {
+                  conceptDescriptionRef = el;
+                  // ref가 설정될 때 현재 concept 값으로 초기화
+                  if (el && currentConcept()) {
+                    el.innerHTML = currentConcept() || '';
+                  }
+                }}
+              ></span>
             </div>
           </Show>
 
@@ -172,12 +218,19 @@ const DetermineInfoConcept = () => {
               <img src={characterImageUrl()} alt="MAI" class={styles.characterImage} />
             </div>
             <SpeechBubble 
-              message={conversation.displayedMessage()} 
+              message={displayMessage()} 
               size={600}
+              type="simple"
               showNavigation={true}
               onNext={conversation.proceedToNext}
               onPrev={conversation.proceedToPrev}
-              scriptHistory={conversationScripts().map((s) => ({ id: s.id, script: s.script }))}
+              scriptHistory={(() => {
+                const currentIndex = conversation.currentScriptIndex();
+                return conversationScripts().slice(0, currentIndex + 1).map(s => ({ 
+                  id: s.id, 
+                  script: (s as any).originalScript || s.script // 원본 스크립트 사용 (HTML 포함)
+                }));
+              })()}
               currentScriptIndex={conversation.currentScriptIndex()}
               onModalStateChange={setIsModalOpen}
               isComplete={() => {
@@ -196,7 +249,7 @@ const DetermineInfoConcept = () => {
                 onClick={() => navigate('/2/7/3')}
                 class={`${styles.primaryButton} ${styles.goNextButton}`}
               >
-                넘어가기
+                다음으로
               </button>
             </div>
           </Show>

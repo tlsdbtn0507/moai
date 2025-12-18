@@ -178,7 +178,10 @@ const DetermineInfo = () => {
                 showNavigation={true}
                 onNext={handleNext}
                 onPrev={conversation.proceedToPrev}
-                scriptHistory={introScripts.map(s => ({ id: s.id, script: s.script }))}
+                scriptHistory={(() => {
+                  const currentIndex = conversation.currentScriptIndex();
+                  return introScripts.slice(0, currentIndex + 1).map(s => ({ id: s.id, script: s.script }));
+                })()}
                 currentScriptIndex={conversation.currentScriptIndex()}
                 onModalStateChange={setIsModalOpen}
                 isComplete={conversation.isComplete}
@@ -223,7 +226,7 @@ const DetermineInfo = () => {
           </Show>
         </div>
 
-        {/* 마지막 스크립트 완료 시 넘어가기 버튼 */}
+        {/* 마지막 스크립트 완료 시 다음으로 버튼 */}
         <Show when={conversation.isLastScript() && conversation.isComplete() && !isModalOpen()}>
           <div class={styles.buttonContainer}>
             <button
@@ -235,7 +238,7 @@ const DetermineInfo = () => {
               }}
               class={`${styles.button} ${styles.buttonPrimary}`}
             >
-              넘어가기
+              다음으로
             </button>
           </div>
         </Show>

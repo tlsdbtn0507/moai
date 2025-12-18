@@ -25,6 +25,22 @@ interface ConceptScript {
     maiPic : string;
 }
 
+interface PracticeScript {
+    id: number;
+    script: string;
+    maiPic:string;
+    isSpeechBubbleBig:boolean;
+    chatPng:null | string;
+    voiceUrl: string;
+}
+
+interface FeedbackScript {
+    id: number;
+    script: string;
+    maiPic:string;
+    voiceUrl: string;
+}
+
 export const introScripts: IntroScript[] = [
     {
         id: 1,
@@ -140,8 +156,8 @@ export const introScripts: IntroScript[] = [
 export const conceptScripts: ConceptScript[] = [
     {
         id: 1,
-        script: 'AI는 답할 때마다 검색을 하는 게 아니야.\n자료를 가져올 때도 있지만, 대부분 이런 식으로 말해.',
-        titleSection: { title: 'AI는 •••', description: '데이터를 가져오는 게 아니라 ‘예측해서 만든다’' },
+        script: 'AI는 <strong>답할 때마다 검색을 하는 게 아니야.</strong>\n자료를 가져올 때도 있지만, 대부분 이런 식으로 말해.',
+        titleSection: { title: 'AI는 •••', description: '데이터를 가져오는 게 아니라 ‘<strong>예측해서 만든다</strong>’' },
         contentPic: null,
         voiceUrl: '2-7/2-7_development_1.mp3',
         maiPic: '2-7/stickMai.png',
@@ -149,15 +165,15 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 2,
         script: '이 단어 뒤에 사람들이 보통 어떤 말을 붙였지?',
-        titleSection: { title: 'AI는 •••', description: "데이터를 가져오는 게 아니라 ‘예측해서 만든다.' " },
+        titleSection: { title: 'AI는 •••', description: "데이터를 가져오는 게 아니라 ‘<strong>예측해서 만든다</strong>’" },
         contentPic: null,
         voiceUrl: '2-7/2-7_development_2.mp3',
         maiPic: '2-7/stickMai.png',
     },
     {
         id: 3,
-        script: '이걸 계산해서 가장 자연스러운\n다음 문장을 만드는 게 AI의 기본 방식이야.',
-        titleSection: { title: 'AI는 •••', description: "데이터를 가져오는 게 아니라 ‘예측해서 만든다.' " },
+        script: '이걸 계산해서 <strong>가장 자연스러운\n다음 문장</strong>을 만드는 게 AI의 기본 방식이야.',
+        titleSection: { title: 'AI는 •••', description: "데이터를 가져오는 게 아니라 ‘<strong>예측해서 만든다</strong>’" },
         contentPic: null,
         voiceUrl: '2-7/2-7_development_3.mp3',
         maiPic: '2-7/stickMai.png',
@@ -165,7 +181,7 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 4,
         script: "예를 들어 ‘중학생·평균·스마트폰 사용’ 같은\n단어들이 보이면, AI는 딱 이렇게 반응해.",
-        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 엉뚱한 정보가 섞여 나올 수 있다.' },
+        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 <strong>엉뚱한 정보</strong>가 섞여 나올 수 있다.' },
         contentPic: '2-7/aiRobot.png',
         voiceUrl: '2-7/2-7_development_4.mp3',
         maiPic: '2-7/magnifyingMai.png',
@@ -173,7 +189,7 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 5,
         script: '음... 이거\n예전에 읽었던 뉴스 문장에도 있었던 표현인데?',
-        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 엉뚱한 정보가 섞여 나올 수 있다.' },
+        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 <strong>엉뚱한 정보</strong>가 섞여 나올 수 있다.' },
         contentPic: '2-7/robot1.png',
         voiceUrl: '2-7/2-7_development_5.mp3',
         maiPic: '2-7/magnifyingMai.png',
@@ -181,7 +197,7 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 6,
         script: '그리고 비슷한 키워드가 들어간 글에서도\n이런 말투가 자주 나왔지.',
-        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 엉뚱한 정보가 섞여 나올 수 있다.' },
+        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 <strong>엉뚱한 정보</strong>가 섞여 나올 수 있다.' },
         contentPic: '2-7/robot2.png',
         voiceUrl: '2-7/2-7_development_6.mp3',
         maiPic: '2-7/magnifyingMai.png',
@@ -189,7 +205,7 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 7,
         script: '설문조사 결과나 누가 썼던 리포트 문장도\n이런 구조였던 것 같고',
-        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 엉뚱한 정보가 섞여 나올 수 있다.' },
+        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 <strong>엉뚱한 정보</strong>가 섞여 나올 수 있다.' },
         contentPic: '2-7/robot3.png',
         voiceUrl: '2-7/2-7_development_7.mp3',
         maiPic: '2-7/magnifyingMai.png',
@@ -197,15 +213,15 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 8,
         script: '패턴이 비슷한 다른 문장들도 있으니까…\n좋아, 이런 식으로 이어가면 자연스럽겠다!',
-        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 엉뚱한 정보가 섞여 나올 수 있다.' },
+        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 <strong>엉뚱한 정보</strong>가 섞여 나올 수 있다.' },
         contentPic: '2-7/robot4.png',
         voiceUrl: '2-7/2-7_development_8.mp3',
         maiPic: '2-7/magnifyingMai.png',
     },
     {
         id: 9,
-        script: '이렇게 여러 조각을 뒤섞어서\n가장 그럴듯한 문장을 만들어내는 거야.',
-        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 엉뚱한 정보가 섞여 나올 수 있다.' },
+        script: '이렇게 여러 조각을 뒤섞어서\n<strong>가장 그럴듯한 문장</strong>을 만들어내는 거야.',
+        titleSection: { title: 'AI는 •••', description: '비슷한 단어만 보여도 <strong>엉뚱한 정보</strong>가 섞여 나올 수 있다.' },
         contentPic: null,
         voiceUrl: '2-7/2-7_development_9.mp3',
         maiPic: '2-7/magnifyingMai.png',
@@ -213,15 +229,15 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 10,
         script: "AI는 ‘음… 아마…’ 같은 망설이는 말투가 없어.\n항상 매끄럽게, 확신 있게 말하지.",
-        titleSection: { title: 'AI는 •••', description: '말투는 자신감 넘치지만, 내용은 틀릴 수 있다.' },
+        titleSection: { title: 'AI는 •••', description: '말투는 자신감 넘치지만, <strong>내용은 틀릴 수 있다</strong>' },
         contentPic: null,
         voiceUrl: '2-7/2-7_development_10.mp3',
         maiPic: '2-7/stickMai.png',
     },
     {
         id: 11,
-        script: "하지만 자연스러움 = 정확함은 절대 아니야.\n두 능력은 완전히 다른거거든.",
-        titleSection: { title: 'AI는 •••', description: '말투는 자신감 넘치지만, 내용은 틀릴 수 있다.' },
+        script: "하지만 <strong>자연스러움</strong> = <strong>정확함은 절대 아니야.</strong>\n두 능력은 완전히 다른거거든.",
+        titleSection: { title: 'AI는 •••', description: '말투는 자신감 넘치지만, <strong>내용은 틀릴 수 있다</strong>' },
         contentPic: null,
         voiceUrl: '2-7/2-7_development_11.mp3',
         maiPic: '2-7/stickMai.png',
@@ -229,15 +245,15 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 12,
         script: 'AI는 도대체 어디까지 진짜로 알고 있고,\n어디서부터는 그럴듯하게 꾸며낸 건지 구분이 잘 안 돼.',
-        titleSection: { title: 'AI는 •••', description: '말투는 자신감 넘치지만, 내용은 틀릴 수 있다.' },
+        titleSection: { title: 'AI는 •••', description: '말투는 자신감 넘치지만, <strong>내용은 틀릴 수 있다</strong>' },
         contentPic: null,
         voiceUrl: '2-7/2-7_development_12.mp3',
         maiPic: '2-7/stickMai.png',
     },
     {
         id: 13,
-        script: '그래서 확신 있게 말하더라도\n사실이 아닐 수 있다는 점을 항상 기억해야 해.',
-        titleSection: { title: 'AI는 •••', description: '말투는 자신감 넘치지만, 내용은 틀릴 수 있다.' },
+        script: '그래서 확신 있게 말하더라도\n<strong>사실이 아닐 수 있다는 점</strong>을 항상 기억해야 해.',
+        titleSection: { title: 'AI는 •••', description: '말투는 자신감 넘치지만, <strong>내용은 틀릴 수 있다</strong>' },
         contentPic: null,
         voiceUrl: '2-7/2-7_development_13.mp3',
         maiPic: '2-7/stickMai.png',
@@ -245,7 +261,7 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 14,
         script: '겉보기에 논리적이고 설득력 있어 보인다고 해서,\n그게 진실이라는 뜻은 아니거든.',
-        titleSection: { title: 'AI는 •••', description: '말투는 자신감 넘치지만, 내용은 틀릴 수 있다.' },
+        titleSection: { title: 'AI는 •••', description: '말투는 자신감 넘치지만, <strong>내용은 틀릴 수 있다</strong>' },
         contentPic: null,
         voiceUrl: '2-7/2-7_development_14.mp3',
         maiPic: '2-7/stickMai.png',
@@ -260,7 +276,7 @@ export const conceptScripts: ConceptScript[] = [
     },
     {
         id: 16,
-        script: 'AI가 이런 그럴듯한 출처 형식을 배워서,\n실제로 존재하지 않는 문서도\n자연스럽게 만들어낼 수 있어.',
+        script: 'AI가 이런 그럴듯한 출처 형식을 배워서,\n<strong>실제로 존재하지 않는 문서</strong>도\n자연스럽게 만들어낼 수 있어.',
         titleSection: { title: 'AI는 •••', description: '출처도 모양만 보고 만들어낼 수 있다.' },
         contentPic: '2-7/reportText.png',
         voiceUrl: '2-7/2-7_development_16.mp3',
@@ -268,7 +284,7 @@ export const conceptScripts: ConceptScript[] = [
     },
     {
         id: 17,
-        script: '겉보기엔 믿음직해 보여도\n실제 자료인지 꼭 확인해야 해.',
+        script: '겉보기엔 믿음직해 보여도\n<strong>실제 자료인지 꼭 확인</strong>해야 해.',
         titleSection: { title: 'AI는 •••', description: '출처도 모양만 보고 만들어낼 수 있다.' },
         contentPic: '2-7/reportText.png',
         voiceUrl: '2-7/2-7_development_17.mp3',
@@ -277,15 +293,15 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 18,
         script: '결국 정답은 이거야.',
-        titleSection: { title: '그래서', description: '최종 결정은 사람이 해야만 한다!' },
+        titleSection: { title: '그래서', description: '<strong>최종 결정</strong>은 사람이 해야만 한다!' },
         contentPic: null,
         voiceUrl: '2-7/2-7_development_18.mp3',
         maiPic: '2-7/reportingMai.png',
     },
     {
         id: 19,
-        script: 'AI는 자연스러운 문장을 만들고,\n사람은 사실 여부를 확인한다. ',
-        titleSection: { title: '그래서', description: '최종 결정은 사람이 해야만 한다!' },
+        script: 'AI는 <strong>자연스러운 문장</strong>을 만들고,\n사람은 <strong>사실 여부</strong>를 확인한다. ',
+        titleSection: { title: '그래서', description: '<strong>최종 결정</strong>은 사람이 해야만 한다!' },
         contentPic: '2-7/robotAndMan.png',
         voiceUrl: '2-7/2-7_development_19.mp3',
         maiPic: '2-7/reportingMai.png',
@@ -293,7 +309,7 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 20,
         script: '이 두 역할이 맞아야 정확한 정보를 쓸 수 있어.',
-        titleSection: { title: '그래서', description: '최종 결정은 사람이 해야만 한다!' },
+        titleSection: { title: '그래서', description: '<strong>최종 결정</strong>은 사람이 해야만 한다!' },
         contentPic: '2-7/connected.png',
         voiceUrl: '2-7/2-7_development_20.mp3',
         maiPic: '2-7/reportingMai.png',
@@ -301,7 +317,7 @@ export const conceptScripts: ConceptScript[] = [
     {
         id: 21,
         script: 'AI가 제시한 정보가 정확한지 판별하는 건\n생각보다 어려운 일이 아니야.',
-        titleSection: { title: '그래서', description: '최종 결정은 사람이 해야만 한다!' },
+        titleSection: { title: '그래서', description: '<strong>최종 결정</strong>은 사람이 해야만 한다!' },
         contentPic: null,
         voiceUrl: '2-7/2-7_development_21.mp3',
         maiPic: '2-7/reportingMai.png',
@@ -332,7 +348,7 @@ export const conceptScripts: ConceptScript[] = [
     },
     {
         id: 25,
-        script: 'AI는 도움을 주는 도구일 뿐,\n최종 판단은 항상 사람이 직접 내려야 해.',
+        script: 'AI는 도움을 주는 도구일 뿐,\n<strong>최종 판단은 항상 사람</strong>이 직접 내려야 해.',
         titleSection: null,
         contentPic: '2-7/texts.png',
         voiceUrl: '2-7/2-7_development_25.mp3',
@@ -362,5 +378,130 @@ export const conceptScripts: ConceptScript[] = [
         voiceUrl: '2-7/2-7_development_28.mp3',
         maiPic: '2-7/bulbMai.png',
     },
+]
+
+export const practiceScripts: PracticeScript[] = [
+    {
+        id: 1,
+        script:'이제 실습을 한번 시작해보자.\nAI가 자연스럽게  말하더라도\n질문을 제대로 안 읽고 대답할 때가 많거든.',
+        maiPic: '2-7/presentHoldingMai.png',
+        isSpeechBubbleBig: true,
+        chatPng: null,
+        voiceUrl: '2-7/2-7_practice_1.mp3',
+    },
+    {
+        id: 2,
+        script: '그걸 직접 잡아내고, 또 그 실수를 안하게\n만드는 질문을 만들어볼거야.',
+        maiPic: '2-7/presentHoldingMai.png',
+        isSpeechBubbleBig: true,
+        chatPng: null,
+        voiceUrl: '2-7/2-7_practice_2.mp3',
+    },
+    {
+        id: 3,
+        script: '겉보기엔 자연스럽지만\n잘 보면 많이 달라\nAI가 놓친 조건들이 뭐가 있을까?',
+        maiPic: '2-7/magnifyingMaiR.png',
+        isSpeechBubbleBig: false,
+        chatPng: '2-7/chatInterface.png',
+        voiceUrl: '2-7/2-7_practice_3.mp3',
+    },
+    {
+        id: 4,
+        script: '잘했어! AI는 단어만 비슷하면\n전체 데이터나 다른 정보를\n가져올 때가 있어',
+        maiPic: '2-7/magnifyingMaiR.png',
+        isSpeechBubbleBig: false,
+        chatPng: '2-7/chatInterface.png',
+        voiceUrl: '2-7/2-7_practice_4.mp3',
+    },
+    {
+        id:5,
+        script: '그럼 이제 AI가 틀리지 않게\n정확한 질문을 만드는 방법을 실습해보자!',
+        maiPic: '2-7/presentHoldingMai.png',
+        isSpeechBubbleBig: true,
+        chatPng: null,
+        voiceUrl: '2-7/2-7_practice_5.mp3',
+    },
+    {
+        id: 6,
+        script: '오늘 숙제할때 했던 질문을 살펴보자.\n궁금한 마음은 알겠는데\n이건 AI에게 너무 막연한 질문이야.',
+        maiPic: '2-7/strangingMai.png',
+        isSpeechBubbleBig: false,
+        chatPng: '2-7/chatAlone.png',
+        voiceUrl: '2-7/2-7_practice_6.mp3',
+    },
+    {
+        id: 7,
+        script: '얼마나가 하루인지, 주간인지도\n모르고, 중1만 말하는지 전부\n말하는 건지도 모르잖아?',
+        maiPic: '2-7/strangingMai.png',
+        isSpeechBubbleBig: false,
+        chatPng: '2-7/chatAlone.png',
+        voiceUrl: '2-7/2-7_practice_7.mp3',
+    },
+    {
+        id: 8,
+        script: '오른쪽의 체크리스트 항목을 보고\n전부 반영한 질문으로 바꿔보자!',
+        maiPic: '2-7/strangingMai.png',
+        isSpeechBubbleBig: false,
+        chatPng: '2-7/chatAlone.png',
+        voiceUrl: '2-7/2-7_practice_8.mp3',
+    },
+    {
+        id: 9,
+        script:"잘했어! 이제 이런  질문을 하며\nAI가 조건을 놓치지 않고\n정확하게 답할 확률이 훨씬 높아져!",
+        maiPic: '2-7/presentHoldingMai.png',
+        isSpeechBubbleBig: true,
+        chatPng: null,
+        voiceUrl: '2-7/2-7_practice_9.mp3',
+    },
+    {
+        id: 10,
+        script: '정확한 질문의 핵심은 다음과 같아.\n언제, 누구, 어디, 어떤 방식, 출처 요청!',
+        maiPic: '2-7/bulbMai.png',
+        isSpeechBubbleBig: true,
+        chatPng: null,
+        voiceUrl: '2-7/2-7_practice_10.mp3',
+    },
+    {
+        id: 11,
+        script: '이 다섯 가지를 넣으면 AI가 자연스럽게\n틀려버릴 가능성을 확 줄일 수 있어!',
+        maiPic: '2-7/presentHoldingMai.png',
+        isSpeechBubbleBig: true,
+        chatPng: null,
+        voiceUrl: '2-7/2-7_practice_11.mp3',
+    },
+    
+]
+
+export const feedbackScripts: FeedbackScript[] = [
+    {
+        id: 1,
+        script: '오늘 배운 내용을 정리해볼까?',
+        maiPic: '2-7/oustretchedMai.png',
+        voiceUrl: '2-7/2-7_closing_1.mp3',
+    },
+    {
+        id: 2,
+        script: 'AI가 자연스럽게 말하더라도\n질문을 제대로 안 읽고 대답할 때가 많거든.',
+        maiPic: '2-7/jumpingMai.png',
+        voiceUrl: '2-7/2-7_closing_2.mp3',
+    },
+    {
+        id: 3,
+        script: '배운 것을 잘 활용하면 AI에게 훨씬\n더 효과적으로 질문할 수 있을 거야!',
+        maiPic: '2-7/jumpingMai.png',
+        voiceUrl: '2-7/2-7_closing_3.mp3',
+    },
+    {
+        id: 4,
+        script: '다음 시간에는 지금까지 배운 걸 바탕으로\n네 AI 도우미를 직접 만들어볼 거야!',
+        maiPic: '2-7/reportingMai.png',
+        voiceUrl: '2-7/2-7_closing_4.mp3',
+    },
+    {
+        id: 5,
+        script: '그럼 다음 시간에 다시 만나자!',
+        maiPic: '2-7/byeMai.png',
+        voiceUrl: '2-7/2-7_closing_5.mp3',
+    }
 ]
 
