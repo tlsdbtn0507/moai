@@ -30,6 +30,16 @@ export function ScoreBoard(props: ScoreBoardProps) {
     contextuality: props.labels?.contextuality || '맥락성',
   };
 
+  // 피드백 텍스트를 4줄로 제한하는 함수
+  const limitToFourLines = (text: string): string => {
+    const lines = text.split('\n').filter(line => line.trim().length > 0);
+    if (lines.length <= 4) {
+      return text;
+    }
+    // 4줄까지만 반환
+    return lines.slice(0, 4).join('\n');
+  };
+
   return (
     <div class={styles.scoreBoard} style={{ 'background-image': scoreBoardImageStyleURL }}>
       <div class={styles.scoreHeader}>
@@ -55,7 +65,7 @@ export function ScoreBoard(props: ScoreBoardProps) {
                       <span class={styles.feedbackLabelText}>{labels.specificity}</span>
                     </div>
                     <div class={styles.feedbackText}>
-                      {score().feedback.specificity}
+                      {limitToFourLines(score().feedback.specificity)}
                     </div>
                   </div>
                   {/* <div class={styles.feedbackDivider}></div> */}
@@ -64,7 +74,7 @@ export function ScoreBoard(props: ScoreBoardProps) {
                       <span class={styles.feedbackLabelText}>{labels.clarity}</span>
                     </div>
                     <div class={styles.feedbackText}>
-                      {score().feedback.clarity}
+                      {limitToFourLines(score().feedback.clarity)}
                     </div>
                   </div>
                   {/* <div class={styles.feedbackDivider}></div> */}
@@ -73,7 +83,7 @@ export function ScoreBoard(props: ScoreBoardProps) {
                       <span class={styles.feedbackLabelText}>{labels.contextuality}</span>
                     </div>
                     <div class={styles.feedbackText}>
-                      {score().feedback.contextuality}
+                      {limitToFourLines(score().feedback.contextuality)}
                     </div>
                   </div>
                 </div>

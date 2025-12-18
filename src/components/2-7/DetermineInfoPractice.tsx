@@ -142,8 +142,7 @@ const DetermineInfoPractice = () => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const answer = formData.get('answer') as string;
-
-    console.log(answer);
+    localStorage.setItem('determineInfoPracticeAnswer', answer);
 
     // TODO: 답안 검증 로직 추가 예정
     // 현재는 한 글자 이상 입력 후 제출하면 다음 스크립트로 진행
