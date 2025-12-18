@@ -24,6 +24,7 @@ const LearningAiAssistant = () => {
   const [displayBackgroundUrl, setDisplayBackgroundUrl] = createSignal(getS3ImageURL('4-2/maiCity.png'));
   const [displayCharacterUrl, setDisplayCharacterUrl] = createSignal(getS3ImageURL('4-2/pointingMai.png'));
   const [displayContentUrl, setDisplayContentUrl] = createSignal<string | null>(null);
+  const [isAutoPlay, setIsAutoPlay] = createSignal(false); // 자동 재생 모드
   
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
   
@@ -196,6 +197,7 @@ const LearningAiAssistant = () => {
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
           // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
+          // (자동재생 모드는 아래의 별도 effect에서 처리)
         },
       });
     }
@@ -204,6 +206,47 @@ const LearningAiAssistant = () => {
     // HTML 태그를 제거한 순수 텍스트로 타이핑
     const plainScript = stripHtmlTags(script.script);
     typingAnimation.startTyping(plainScript);
+  });
+
+  // 자동 재생 모드: 마지막 스크립트 전까지 오디오+타이핑 완료 시 자동으로 다음 스크립트로 진행
+  createEffect(() => {
+    if (!isAutoPlay()) {
+      // 자동 재생이 꺼지면 대기 중인 타이머 정리
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    const script = currentScript();
+    if (!script) return;
+
+    // 마지막 스크립트에서는 자동으로 다음 차시로 넘기지 않고 "다음으로" 버튼 사용
+    if (isLastScript()) return;
+
+    const plainScript = stripHtmlTags(script.script);
+    const isTypingComplete =
+      typingAnimation.displayedMessage().length === plainScript.length ||
+      typingAnimation.isTypingSkipped();
+    const isAudioComplete = !audioPlayback.isPlaying();
+
+    const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped())
+      ? isTypingComplete
+      : (isTypingComplete && isAudioComplete);
+
+    if (isComplete) {
+      if (autoProceedTimeout) return;
+      autoProceedTimeout = setTimeout(() => {
+        proceedToNext();
+        autoProceedTimeout = null;
+      }, 400);
+    } else {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+    }
   });
 
   // 오디오 컨텍스트 활성화 함수
@@ -314,6 +357,31 @@ const LearningAiAssistant = () => {
         style={{ "background-color": '#A9E0FF',}}
       >
         <div class={styles.contentWrapper}>
+          {/* 자동 재생 토글 버튼 */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '2rem',
+              left: '2rem',
+              'z-index': 5,
+            }}
+          >
+            <button
+              onClick={() => setIsAutoPlay(prev => !prev)}
+              style={{
+                padding: '0.4rem 0.8rem',
+                'border-radius': '1rem',
+                border: '1px solid #fff',
+                background: isAutoPlay() ? '#4caf50' : 'rgba(0,0,0,0.4)',
+                color: '#fff',
+                'font-size': '0.8rem',
+                cursor: 'pointer',
+                'font-family': 'CookieRun',
+              }}
+            >
+              자동재생: {isAutoPlay() ? 'ON' : 'OFF'}
+            </button>
+          </div>
           <Show when={currentScriptData()?.id < 5}>
             <span class={styles.activityTitleSpan}>활동</span>
           </Show>
@@ -350,9 +418,9 @@ const LearningAiAssistant = () => {
                 type='simple'
                 message={displayMessage()} 
                 size={600}
-                showNavigation={true}
-                onNext={proceedToNext}
-                onPrev={proceedToPrev}
+                showNavigation={!isAutoPlay()}
+                onNext={isAutoPlay() ? undefined : proceedToNext}
+                onPrev={isAutoPlay() ? undefined : proceedToPrev}
                 // 현재 대사 이전의 기록만 표시
                 scriptHistory={conceptStepScripts
                   .slice(0, currentScriptIndex() + 1)
@@ -375,6 +443,8 @@ const LearningAiAssistant = () => {
                 canGoNext={() => {
                   const script = currentScript();
                   if (!script) return false;
+                  // 자동 재생 모드에서는 다음 버튼 숨김
+                  if (isAutoPlay()) return false;
                   const plainScript = stripHtmlTags(script.script);
                   const isTypingComplete =
                     typingAnimation.displayedMessage().length === plainScript.length ||
@@ -386,7 +456,7 @@ const LearningAiAssistant = () => {
                     : (isTypingComplete && isAudioComplete);
                   return isComplete && currentScriptIndex() < conceptStepScripts.length - 1;
                 }}
-                canGoPrev={() => currentScriptIndex() > 0}
+                canGoPrev={() => !isAutoPlay() && currentScriptIndex() > 0}
               />
             </div>
           </Show>

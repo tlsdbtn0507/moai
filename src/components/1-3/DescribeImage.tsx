@@ -30,6 +30,8 @@ const DescribeImage = () => {
   const currentScriptIndex = () => showSecondMessage() ? 1 : 0;
   
   const [showConfirmButton, setShowConfirmButton] = createSignal(false);
+  const [isAutoPlay, setIsAutoPlay] = createSignal(false); // 자동 재생 여부
+  const [hasAutoNavigated, setHasAutoNavigated] = createSignal(false); // 자동 이동 1회 제한
   const [selectedValue, setSelectedValue] = createSignal<'mt' | 'sea' | 'city' | null>(null);
   const [userInput, setUserInput] = createSignal('');
   const [isReady, setIsReady] = createSignal(false);
@@ -115,6 +117,24 @@ const DescribeImage = () => {
     }
   });
 
+  // 자동재생: 두 번째 대사에서 오디오+타이핑 완료 시 자동으로 다음 단계로 이동
+  createEffect(() => {
+    if (!isAutoPlay()) return;
+    if (!showSecondMessage()) return;
+    if (hasAutoNavigated()) return;
+
+    const isTypingComplete =
+      typingAnimation.displayedMessage().length === secondMessage.length ||
+      typingAnimation.isTypingSkipped();
+    const isAudioComplete = !audioPlayback.isPlaying();
+
+    if (isTypingComplete && isAudioComplete) {
+      setHasAutoNavigated(true);
+      audioPlayback.stopAudio();
+      navigate('/1/3/2');
+    }
+  });
+
   return (
     <Show when={isReady()} fallback={<LoadingSpinner />}>
       <div
@@ -132,6 +152,32 @@ const DescribeImage = () => {
           
         }}
       >
+      {/* 자동 재생 토글 버튼 */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '2rem',
+          left: '2rem',
+          'z-index': 5,
+        }}
+      >
+        <button
+          onClick={() => setIsAutoPlay(prev => !prev)}
+          style={{
+            padding: '0.4rem 0.8rem',
+            'border-radius': '1rem',
+            border: '1px solid #fff',
+            background: isAutoPlay() ? '#4caf50' : 'rgba(0,0,0,0.4)',
+            color: '#fff',
+            'font-size': '0.8rem',
+            cursor: 'pointer',
+            'font-family': 'CookieRun',
+          }}
+        >
+          자동재생: {isAutoPlay() ? 'ON' : 'OFF'}
+        </button>
+      </div>
+
       <SpeechBubble message={typingAnimation.displayedMessage()}/>
       {showSelectSunset() && (typingAnimation.displayedMessage().length === firstMessage.length || typingAnimation.isTypingSkipped()) && handleSelectRef && (
         <div style={{     

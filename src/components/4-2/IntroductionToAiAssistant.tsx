@@ -23,6 +23,7 @@ const IntroductionToAiAssistant = () => {
   const [displayBackgroundUrl, setDisplayBackgroundUrl] = createSignal(getS3ImageURL('4-2/maiCity.png'));
   const [displayCharacterUrl, setDisplayCharacterUrl] = createSignal(getS3ImageURL('4-2/pocketMai.png'));
   const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
+  const [isAutoPlay, setIsAutoPlay] = createSignal(false); // 자동 재생 모드
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
   const navigate = useNavigate();
   const params = useParams();
@@ -194,7 +195,8 @@ const IntroductionToAiAssistant = () => {
       setCurrentPlayingScriptIndex(scriptIndex);
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
-          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
+          // 자동 재생 모드는 아래 별도 effect에서 처리
+          // 수동 모드에서는 사용자가 버튼으로 진행
         },
       });
     }
@@ -202,7 +204,47 @@ const IntroductionToAiAssistant = () => {
     // 오디오 시작과 동시에 타이핑 애니메이션 시작
     // 타이핑 애니메이션이 스킵된 상태가 아니면 시작
     if (!typingAnimation.isTypingSkipped()) {
-    typingAnimation.startTyping(script.script);
+      typingAnimation.startTyping(script.script);
+    }
+  });
+
+  // 자동 재생 모드: 마지막 스크립트 전까지 오디오+타이핑 완료 시 자동으로 다음 스크립트로 진행
+  createEffect(() => {
+    if (!isAutoPlay()) {
+      // 자동 재생이 꺼지면 대기 중인 타이머 정리
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    const script = currentScript();
+    if (!script) return;
+
+    // 마지막 스크립트에서는 자동으로 다음 차시로 넘기지 않고 "다음으로" 버튼 사용
+    if (isLastScript()) return;
+
+    const isTypingComplete =
+      typingAnimation.displayedMessage().length === script.script.length ||
+      typingAnimation.isTypingSkipped();
+    const isAudioComplete = !audioPlayback.isPlaying();
+
+    const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped())
+      ? isTypingComplete
+      : (isTypingComplete && isAudioComplete);
+
+    if (isComplete) {
+      if (autoProceedTimeout) return;
+      autoProceedTimeout = setTimeout(() => {
+        proceedToNext();
+        autoProceedTimeout = null;
+      }, 400);
+    } else {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
     }
   });
 
@@ -349,6 +391,31 @@ const IntroductionToAiAssistant = () => {
             top: (currentScriptData()?.id && currentScriptData()!.id >= 3 && currentScriptData()!.id <= 8) ? '88%' : undefined,
           }}
         >
+          {/* 자동 재생 토글 버튼 */}
+          <div
+            style={{
+              position: 'absolute',
+              top: (currentScriptData()?.id && currentScriptData()!.id >= 3 && currentScriptData()!.id <= 8) ? '-38rem' : '2rem',
+              left: '2rem',
+              'z-index': 5,
+            }}
+          >
+            <button
+              onClick={() => setIsAutoPlay(prev => !prev)}
+              style={{
+                padding: '0.4rem 0.8rem',
+                'border-radius': '1rem',
+                border: '1px solid #fff',
+                background: isAutoPlay() ? '#4caf50' : 'rgba(0,0,0,0.4)',
+                color: '#fff',
+                'font-size': '0.8rem',
+                cursor: 'pointer',
+                'font-family': 'CookieRun',
+              }}
+            >
+              자동재생: {isAutoPlay() ? 'ON' : 'OFF'}
+            </button>
+          </div>
           <Show when={currentScriptData()?.maiPng && !isFading()}>
             <img
               src={displayCharacterUrl()}
@@ -362,9 +429,9 @@ const IntroductionToAiAssistant = () => {
                 message={typingAnimation.displayedMessage()} 
                 size={800} 
                 type={speechBubbleType()}
-                showNavigation={true}
-                onNext={proceedToNext}
-                onPrev={proceedToPrev}
+                showNavigation={!isAutoPlay()}
+                onNext={isAutoPlay() ? undefined : proceedToNext}
+                onPrev={isAutoPlay() ? undefined : proceedToPrev}
                 isComplete={() => {
                   const script = currentScript();
                   if (!script) return false;
@@ -379,6 +446,8 @@ const IntroductionToAiAssistant = () => {
                 canGoNext={() => {
                   const script = currentScript();
                   if (!script) return false;
+                  // 자동 재생 모드에서는 다음 버튼 숨김
+                  if (isAutoPlay()) return false;
                   const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
                   const isAudioComplete = !audioPlayback.isPlaying();
                   // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
@@ -387,7 +456,7 @@ const IntroductionToAiAssistant = () => {
                     : (isTypingComplete && isAudioComplete);
                   return isComplete && currentScriptIndex() < introductionScripts.length - 1;
                 }}
-                canGoPrev={() => currentScriptIndex() > 0}
+                canGoPrev={() => !isAutoPlay() && currentScriptIndex() > 0}
                 scriptHistory={introductionScripts.slice(0, currentScriptIndex() + 1).map(script => ({
                   id: script.id,
                   script: script.script,
@@ -401,7 +470,7 @@ const IntroductionToAiAssistant = () => {
           <Show when={!currentScriptData()?.speechBubble && currentScriptData()?.scriptBgLine && !isFading() && typingAnimation.displayedMessage().length > 0}>
             <div class={`${styles.scriptBgLine} ${styles.fadeIn}`} style={{ position:'relative' }}>
               {typingAnimation.displayedMessage()}
-              <Show when={shouldShowPrevButton()}>
+              <Show when={!isAutoPlay() && shouldShowPrevButton()}>
                 <button
                   onClick={proceedToPrev}
                   class={styles.navButtonPrev}
@@ -409,7 +478,7 @@ const IntroductionToAiAssistant = () => {
                   이전
                 </button>
               </Show>
-              <Show when={shouldShowNextButton()}>
+              <Show when={!isAutoPlay() && shouldShowNextButton()}>
                 <button
                   onClick={proceedToNext}
                   class={styles.navButtonNext}
@@ -423,7 +492,7 @@ const IntroductionToAiAssistant = () => {
           <Show when={!currentScriptData()?.speechBubble && !currentScriptData()?.scriptBgLine && !isFading() && typingAnimation.displayedMessage().length > 0}>
             <div class={`${styles.plainText} ${styles.fadeIn}`} style={{ position: 'absolute', bottom: '3rem' }}>
               {typingAnimation.displayedMessage()}
-              <Show when={shouldShowPrevButton()}>
+              <Show when={!isAutoPlay() && shouldShowPrevButton()}>
                 <button
                   onClick={proceedToPrev}
                   class={styles.navButtonPrev}
@@ -431,7 +500,7 @@ const IntroductionToAiAssistant = () => {
                   이전
                 </button>
               </Show>
-              <Show when={shouldShowNextButton()}>
+              <Show when={!isAutoPlay() && shouldShowNextButton()}>
                 <button
                   onClick={proceedToNext}
                   class={styles.navButtonNext}

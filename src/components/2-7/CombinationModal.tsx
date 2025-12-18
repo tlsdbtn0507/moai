@@ -3,6 +3,8 @@ import styles from './DetermineInfo.module.css';
 
 type CombinationModalProps = {
   onNext: () => void;
+  // 모달을 강제로 닫고 싶을 때 사용할 수 있는 선택적 콜백
+  onClose?: () => void;
 };
 
 const CombinationModal = (props: CombinationModalProps) => {
@@ -11,7 +13,12 @@ const CombinationModal = (props: CombinationModalProps) => {
 
   const handleSubmit = (e: SubmitEvent) => {
     e.preventDefault();
+    // 부모에서 전달한 흐름(스텝 진행)
     props.onNext();
+    // 자동재생 여부와 상관없이 모달을 명시적으로 닫아준다
+    if (props.onClose) {
+      props.onClose();
+    }
   };
 
   return (

@@ -19,6 +19,7 @@ const ImportanceOfPrompting = () => {
   const [audioContextActivated, setAudioContextActivated] = createSignal(false);
   const [wasSkipped, setWasSkipped] = createSignal(false); // 스킵 상태 추적
   const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
+  const [isAutoPlay, setIsAutoPlay] = createSignal(false); // 자동 재생 모드
   const [isModalOpen, setIsModalOpen] = createSignal(false); // 모달 상태
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null; // 자동 진행 타이머
   let conceptDescriptionRef: HTMLSpanElement | undefined; // concept description ref
@@ -248,8 +249,17 @@ const ImportanceOfPrompting = () => {
     typingAnimation.startTyping(script.script);
   });
 
-  // 자동 진행 로직: 타이핑과 오디오가 완료되면 자동으로 다음 스크립트로 진행
+  // 자동 진행 로직 (기존 그룹 자동 진행): 타이핑과 오디오가 완료되면 자동으로 다음 스크립트로 진행
   createEffect(() => {
+    // 자동재생 모드에서는 이 그룹 자동 진행 로직을 사용하지 않음
+    if (isAutoPlay()) {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
     if (!shouldAutoProceed()) {
       // 자동 진행이 필요없는 경우 기존 타이머 취소
       if (autoProceedTimeout) {
@@ -286,6 +296,47 @@ const ImportanceOfPrompting = () => {
       }, 0); // 즉시 자동 진행
     } else {
       // 아직 완료되지 않았으면 기존 타이머 취소
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+    }
+  });
+
+  // 자동 재생 모드: 모든 스크립트에서 (마지막 전까지) 오디오+타이핑 완료 시 자동으로 다음 스크립트로 진행
+  createEffect(() => {
+    if (!isAutoPlay()) {
+      // 자동 재생이 꺼지면 대기 중인 타이머 정리
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    const script = currentScript();
+    if (!script) return;
+
+    // 마지막 스크립트에서는 자동으로 다음 단계로 넘어가지 않고 "다음으로" 버튼 사용
+    if (isLastScript()) return;
+
+    const isTypingComplete =
+      typingAnimation.displayedMessage().length === script.script.length ||
+      typingAnimation.isTypingSkipped();
+    const isAudioComplete = !audioPlayback.isPlaying();
+
+    // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+    const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped())
+      ? isTypingComplete
+      : (isTypingComplete && isAudioComplete);
+
+    if (isComplete) {
+      if (autoProceedTimeout) return;
+      autoProceedTimeout = setTimeout(() => {
+        proceedToNext();
+        autoProceedTimeout = null;
+      }, 400);
+    } else {
       if (autoProceedTimeout) {
         clearTimeout(autoProceedTimeout);
         autoProceedTimeout = null;
@@ -365,6 +416,32 @@ const ImportanceOfPrompting = () => {
         }}
       >
         <div class={styles.modal}>
+          {/* 자동 재생 토글 버튼 */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '2rem',
+              left: '2rem',
+              'z-index': 5,
+            }}
+          >
+            <button
+              onClick={() => setIsAutoPlay(prev => !prev)}
+              style={{
+                padding: '0.4rem 0.8rem',
+                'border-radius': '1rem',
+                border: '1px solid #fff',
+                background: isAutoPlay() ? '#4caf50' : 'rgba(0,0,0,0.4)',
+                color: '#fff',
+                'font-size': '0.8rem',
+                cursor: 'pointer',
+                'font-family': 'CookieRun',
+              }}
+            >
+              자동재생: {isAutoPlay() ? 'ON' : 'OFF'}
+            </button>
+          </div>
+
           <Show when={currentTitle()} fallback={<h1 class={styles.title}>프롬프팅</h1>}>
             <h1 class={styles.title}>{currentTitle()}</h1>
           </Show>
@@ -389,9 +466,9 @@ const ImportanceOfPrompting = () => {
                 message={typingAnimation.displayedMessage()} 
                 size={600}
                 type='simple'
-                showNavigation={true}
-                onNext={proceedToNext}
-                onPrev={proceedToPrev}
+                showNavigation={!isAutoPlay()}
+                onNext={isAutoPlay() ? undefined : proceedToNext}
+                onPrev={isAutoPlay() ? undefined : proceedToPrev}
                 // 현재 대본 포함, 이전 대본까지만 표시
                 scriptHistory={importanceOfPromptingScripts
                   .slice(0, currentScriptIndex() + 1)
@@ -412,6 +489,8 @@ const ImportanceOfPrompting = () => {
                 canGoNext={() => {
                   const script = currentScript();
                   if (!script) return false;
+                  // 자동 재생 모드에서는 다음 버튼 숨김
+                  if (isAutoPlay()) return false;
                   
                   // 자동 진행이 필요한 스크립트는 다음 버튼을 표시하지 않음
                   if (shouldAutoProceed()) {
@@ -427,6 +506,10 @@ const ImportanceOfPrompting = () => {
                   return isComplete && currentScriptIndex() < importanceOfPromptingScripts.length - 1;
                 }}
                 canGoPrev={() => {
+                  // 자동 재생 모드에서는 이전 버튼 숨김
+                  if (isAutoPlay()) {
+                    return false;
+                  }
                   // 묶음의 첫 번째 스크립트면 이전 버튼 숨김
                   if (shouldAutoProceed()) {
                     return false;

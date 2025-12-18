@@ -21,6 +21,7 @@ const MakingAvatarsWithPrompting = () => {
   const [currentScriptIndex, setCurrentScriptIndex] = createSignal(-1);
   const [audioContextActivated, setAudioContextActivated] = createSignal(false);
   const [wasSkipped, setWasSkipped] = createSignal(false);
+  const [isAutoPlay, setIsAutoPlay] = createSignal(false); // 자동 재생 모드
   const [audioFinishedForId3, setAudioFinishedForId3] = createSignal(false);
   const [restartTrigger, setRestartTrigger] = createSignal(0); // 재시작 트리거
   const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
@@ -182,13 +183,60 @@ const MakingAvatarsWithPrompting = () => {
             return;
           }
           
-          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
+          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함 (자동재생 모드는 별도 effect에서 처리)
         },
       });
     }
 
     // 오디오 시작과 동시에 타이핑 애니메이션 시작
     typingAnimation.startTyping(script.script);
+  });
+
+  // 자동 재생 모드: id 1, 2, 5에서 오디오+타이핑 완료 시 자동으로 다음 단계로 진행
+  createEffect(() => {
+    if (!isAutoPlay()) {
+      // 자동 재생이 꺼지면 대기 중인 타이머 정리
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    const script = currentScript();
+    if (!script) return;
+
+    // id 3(캐릭터 입력으로 넘어가는 단계)와 id 4(입력 화면)는 자동 진행하지 않음
+    if (script.id === 3 || script.id === 4) {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    const isTypingComplete =
+      typingAnimation.displayedMessage().length === script.script.length ||
+      typingAnimation.isTypingSkipped();
+    const isAudioComplete = !audioPlayback.isPlaying();
+
+    const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped())
+      ? isTypingComplete
+      : (isTypingComplete && isAudioComplete);
+
+    // index 0,1,4(=id 1,2,5)에서만 자동 진행
+    if (isComplete && currentScriptIndex() >= 0 && currentScriptIndex() <= 4) {
+      if (autoProceedTimeout) return;
+      autoProceedTimeout = setTimeout(() => {
+        proceedToNext();
+        autoProceedTimeout = null;
+      }, 400);
+    } else {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+    }
   });
 
   // 오디오 컨텍스트 활성화 함수
@@ -302,14 +350,39 @@ const MakingAvatarsWithPrompting = () => {
           <div class={styles.modal}>
             <h1 class={styles.title}>실습 : 캐릭터 만들어보기</h1>
             <div class={styles.content}>
+              {/* 자동 재생 토글 버튼 */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: currentScript()?.id === 1 ? '-4rem' : '-8rem',
+                  left: '-4rem',
+                  'z-index': 5,
+                }}
+              >
+                <button
+                  onClick={() => setIsAutoPlay(prev => !prev)}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    'border-radius': '1rem',
+                    border: '1px solid #fff',
+                    background: isAutoPlay() ? '#4caf50' : 'rgba(0,0,0,0.4)',
+                    color: '#fff',
+                    'font-size': '0.8rem',
+                    cursor: 'pointer',
+                    'font-family': 'CookieRun',
+                  }}
+                >
+                  자동재생: {isAutoPlay() ? 'ON' : 'OFF'}
+                </button>
+              </div>
               {currentScriptImage()}
               <SpeechBubble 
                 size={550}
                 type='simple'
                 message={typingAnimation.displayedMessage()}
-                showNavigation={currentScript()?.id !== 3}
-                onNext={proceedToNext}
-                onPrev={proceedToPrev}
+                showNavigation={!isAutoPlay() && currentScript()?.id !== 3}
+                onNext={isAutoPlay() ? undefined : proceedToNext}
+                onPrev={isAutoPlay() ? undefined : proceedToPrev}
                 isComplete={() => {
                   const script = currentScript();
                   if (!script || script.id === 3 || script.id === 4) return false;
@@ -324,6 +397,8 @@ const MakingAvatarsWithPrompting = () => {
                 canGoNext={() => {
                   const script = currentScript();
                   if (!script || script.id === 3 || script.id === 4) return false;
+                  // 자동 재생 모드에서는 다음 버튼 숨김
+                  if (isAutoPlay()) return false;
                   const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
                   const isAudioComplete = !audioPlayback.isPlaying();
                   // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
@@ -332,7 +407,12 @@ const MakingAvatarsWithPrompting = () => {
                     : (isTypingComplete && isAudioComplete);
                   return isComplete && currentScriptIndex() < 4;
                 }}
-                canGoPrev={() => currentScriptIndex() > 0 && currentScript()?.id !== 3 && currentScript()?.id !== 4}
+                canGoPrev={() =>
+                  !isAutoPlay() &&
+                  currentScriptIndex() > 0 &&
+                  currentScript()?.id !== 3 &&
+                  currentScript()?.id !== 4
+                }
               />
               <Show when={currentScript()?.id === 2}>
                 <img class={styles.sideCharacterImage} src={getS3ImageURL('1-3/smileRunningMai.png')} alt="웃으며_뛰는_마이" />

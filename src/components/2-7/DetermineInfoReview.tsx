@@ -20,11 +20,13 @@ const reviewScripts: MoaiConversationScript[] = feedbackScripts.map(script => ({
 const DetermineInfoReview = () => {
   const [isReady, setIsReady] = createSignal(false);
   const [audioContextActivated, setAudioContextActivated] = createSignal(false);
+  const [isAutoPlay, setIsAutoPlay] = createSignal(false); // 자동 재생 모드
   const [displayCharacterUrl, setDisplayCharacterUrl] = createSignal<string | null>(null);
   const [showScoreBoard, setShowScoreBoard] = createSignal(false);
   const [scores, setScores] = createSignal<PromptScores | null>(null);
   const [isEvaluating, setIsEvaluating] = createSignal(false);
   const navigate = useNavigate();
+  let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null; // 자동 진행 타이머
 
   const reviewBg = getS3ImageURL('2-7/desk.png');
   const reviewBgStyle = `url(${reviewBg})`;
@@ -247,13 +249,85 @@ const DetermineInfoReview = () => {
   });
 
   onCleanup(() => {
-    // 정리 작업 (필요시)
+    // 자동 진행 타이머 정리
+    if (autoProceedTimeout) {
+      clearTimeout(autoProceedTimeout);
+      autoProceedTimeout = null;
+    }
+  });
+
+  // 자동 재생 모드: 마지막 스크립트 전까지 오디오+타이핑 완료 시 자동으로 다음 스크립트로 진행
+  createEffect(() => {
+    if (!isAutoPlay()) {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    const script = conversation.currentScript();
+    if (!script) return;
+
+    // 마지막 스크립트에서는 자동으로 다음 차시로 넘기지 않고 "다음으로" 버튼 사용
+    if (conversation.isLastScript()) {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    // 아직 대사가 완전히 끝나지 않았으면 대기
+    if (!conversation.isComplete()) {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    // 기본 딜레이 400ms
+    const delayMs = 400;
+
+    if (autoProceedTimeout) return;
+    autoProceedTimeout = setTimeout(() => {
+      conversation.proceedToNext();
+      autoProceedTimeout = null;
+    }, delayMs);
   });
 
   return (
     <Show when={isReady()} fallback={<LoadingSpinner />}>
         <div class={pageContainerStyles.container} style={{'background-image': reviewBgStyle}}>
          <div class={styles.contentCard}>
+          {/* 자동 재생 토글 버튼 */}
+          <Show when={!showScoreBoard()}>
+            <div
+              style={{
+                position: 'absolute',
+                top: '1.5rem',
+                left: '1.5rem',
+                'z-index': 5,
+              }}
+            >
+              <button
+                onClick={() => setIsAutoPlay((prev) => !prev)}
+                style={{
+                  padding: '0.4rem 0.8rem',
+                  'border-radius': '1rem',
+                  border: '1px solid #fff',
+                  background: isAutoPlay() ? '#4caf50' : 'rgba(0,0,0,0.4)',
+                  color: '#fff',
+                  'font-size': '0.8rem',
+                  cursor: 'pointer',
+                  'font-family': 'CookieRun',
+                }}
+              >
+                자동재생: {isAutoPlay() ? 'ON' : 'OFF'}
+              </button>
+            </div>
+          </Show>
           <Show when={!showScoreBoard()}>
             <Show when={displayCharacterUrl()}>
               <div class={styles.contentWrapper}>
@@ -264,14 +338,18 @@ const DetermineInfoReview = () => {
                 />
                 <SpeechBubble 
                   message={conversation.displayedMessage()} 
-                  showNavigation={true}
-                  onNext={conversation.proceedToNext}
-                  onPrev={conversation.proceedToPrev}
+                  showNavigation={!isAutoPlay()}
+                  onNext={isAutoPlay() ? undefined : conversation.proceedToNext}
+                  onPrev={isAutoPlay() ? undefined : conversation.proceedToPrev}
                   isComplete={conversation.isComplete}
                   canGoNext={() => {
+                    if (isAutoPlay()) return false;
                     return conversation.isComplete() && !conversation.isLastScript();
                   }}
-                  canGoPrev={() => conversation.currentScriptIndex() > 0}
+                  canGoPrev={() => {
+                    if (isAutoPlay()) return false;
+                    return conversation.currentScriptIndex() > 0;
+                  }}
                 />
               </div>
             </Show>

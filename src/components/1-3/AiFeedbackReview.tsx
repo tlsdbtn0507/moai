@@ -33,6 +33,7 @@ const AiFeedbackReview = () => {
   const [showConfirmButton, setShowConfirmButton] = createSignal(false);
   const [scores, setScores] = createSignal<PromptScores | null>(null);
   const [isEvaluating, setIsEvaluating] = createSignal(false);
+  const [isAutoPlay, setIsAutoPlay] = createSignal(false); // 자동 재생 모드
   const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
   
@@ -117,9 +118,8 @@ const AiFeedbackReview = () => {
       setCurrentPlayingScriptIndex(scriptIndex);
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
-          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
+          // 오디오 재생 완료 시: 마지막 스크립트일 때만 버튼 표시
           if (scriptIndex >= aiFeedbackReviewScripts.length - 1) {
-            // 마지막 스크립트 완료 - 버튼 표시
             setShowConfirmButton(true);
           }
         },
@@ -128,6 +128,40 @@ const AiFeedbackReview = () => {
 
     // 오디오 시작과 동시에 타이핑 애니메이션 시작
     typingAnimation.startTyping(script.script);
+  });
+
+  // 자동 재생 모드: 오디오+타이핑이 모두 끝나면 다음 스크립트로 자동 진행
+  createEffect(() => {
+    const script = currentScript();
+    if (!script) return;
+
+    // 자동 재생 모드가 아니면 타이머만 정리
+    if (!isAutoPlay()) {
+      cancelAutoProceed();
+      return;
+    }
+
+    const index = currentScriptIndex();
+    const isTypingComplete =
+      typingAnimation.displayedMessage().length === script.script.length ||
+      typingAnimation.isTypingSkipped();
+    const isAudioComplete = !audioPlayback.isPlaying();
+
+    // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
+    const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped())
+      ? isTypingComplete
+      : (isTypingComplete && isAudioComplete);
+
+    // 마지막 스크립트 직전까지만 자동 진행
+    if (
+      isComplete &&
+      index < aiFeedbackReviewScripts.length - 1 &&
+      !autoProceedTimeout
+    ) {
+      autoProceedTimeout = setTimeout(() => {
+        proceedToNext();
+      }, 400); // 약간의 딜레이 후 자동 진행
+    }
   });
 
   // 오디오 컨텍스트 활성화 함수
@@ -266,14 +300,41 @@ const AiFeedbackReview = () => {
           <Show when={!showScoreBoard()}>
           {/* 내용물 레이어 */}
             <div class={styles.contentLayer}>
+              {/* 자동 재생 토글 버튼 (우측 상단) */}
+              <div
+                style={{
+                  'z-index': '5',
+                  position: 'absolute',
+                  'top': '-9rem',
+                  'left': '1rem',
+                  
+                }}
+              >
+                <button
+                  onClick={() => setIsAutoPlay(prev => !prev)}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    'border-radius': '1rem',
+                    "font-family":'CookieRun',
+                    border: '1px solid #fff',
+                    background: isAutoPlay() ? '#4caf50' : 'rgba(0,0,0,0.4)',
+                    color: '#fff',
+                    'font-size': '0.8rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  자동재생: {isAutoPlay() ? 'ON' : 'OFF'}
+                </button>
+              </div>
               <Show when={currentScript()}>
                 <div style={{ display: 'flex', 'flex-direction': 'column', 'align-items': 'center' }}>
                   {currentScriptImage()}
                   <SpeechBubble 
                     message={typingAnimation.displayedMessage()}
-                    showNavigation={true}
-                    onNext={proceedToNext}
-                    onPrev={proceedToPrev}
+                    showNavigation={!isAutoPlay()}
+                    onNext={isAutoPlay() ? undefined : proceedToNext}
+                    // 자동 재생 모드에서는 이전 버튼 비활성화
+                    onPrev={isAutoPlay() ? undefined : proceedToPrev}
                     isComplete={() => {
                       const script = currentScript();
                       if (!script) return false;
@@ -288,6 +349,8 @@ const AiFeedbackReview = () => {
                     canGoNext={() => {
                       const script = currentScript();
                       if (!script) return false;
+                      // 자동 재생 모드에서는 다음 버튼 숨김
+                      if (isAutoPlay()) return false;
                       const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
                       const isAudioComplete = !audioPlayback.isPlaying();
                       // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
@@ -296,7 +359,11 @@ const AiFeedbackReview = () => {
                         : (isTypingComplete && isAudioComplete);
                       return isComplete && currentScriptIndex() < aiFeedbackReviewScripts.length - 1;
                     }}
-                    canGoPrev={() => currentScriptIndex() > 0}
+                    canGoPrev={() => {
+                      // 자동 재생 모드에서는 이전 버튼 숨김
+                      if (isAutoPlay()) return false;
+                      return currentScriptIndex() > 0;
+                    }}
                   />
                 </div>
               </Show>

@@ -36,6 +36,8 @@ const FinishingUpq = () => {
   const [feedbackWasSkipped, setFeedbackWasSkipped] = createSignal(false);
   const [currentPlayingScriptIndex, setCurrentPlayingScriptIndex] = createSignal<number | null>(null);
   const [currentPlayingFeedbackScriptIndex, setCurrentPlayingFeedbackScriptIndex] = createSignal<number | null>(null);
+  const [isAutoPlay, setIsAutoPlay] = createSignal(false);
+  const [isFeedbackAutoPlay, setIsFeedbackAutoPlay] = createSignal(false);
   const feedbackTypingAnimation = useTypingAnimation({ typingSpeed: 150 });
   const feedbackAudioPlayback = useAudioPlayback();
   let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -295,9 +297,9 @@ const FinishingUpq = () => {
       setCurrentPlayingFeedbackScriptIndex(scriptIndex);
       feedbackAudioPlayback.playAudio(script.voice, {
         onEnded: () => {
-          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
-          if (scriptIndex >= aiFeedbackReviewScripts.length - 1) {
-            // 마지막 스크립트 완료 - 버튼 표시
+          // 자동 재생 모드는 아래 별도 effect에서 처리
+          // 수동 모드에서는 마지막 스크립트일 때만 버튼 표시
+          if (!isFeedbackAutoPlay() && scriptIndex >= aiFeedbackReviewScripts.length - 1) {
             setShowConfirmButton(true);
           }
         },
@@ -306,6 +308,45 @@ const FinishingUpq = () => {
 
     // 오디오 시작과 동시에 타이핑 애니메이션 시작
     feedbackTypingAnimation.startTyping(script.script);
+  });
+
+  // 피드백 자동 재생: 마지막 피드백 스크립트 전까지 오디오+타이핑 완료 시 자동으로 다음 피드백 스크립트로 진행
+  createEffect(() => {
+    if (!isFeedbackAutoPlay()) {
+      if (feedbackAutoProceedTimeout) {
+        clearTimeout(feedbackAutoProceedTimeout);
+        feedbackAutoProceedTimeout = null;
+      }
+      return;
+    }
+
+    const script = feedbackCurrentScript();
+    if (!script) return;
+
+    // 마지막 피드백 스크립트에서는 자동으로 ScoreBoard로 넘기지 않고 버튼 사용
+    if (feedbackScriptIndex() >= aiFeedbackReviewScripts.length - 1) return;
+
+    const isTypingComplete =
+      feedbackTypingAnimation.displayedMessage().length === script.script.length ||
+      feedbackTypingAnimation.isTypingSkipped();
+    const isAudioComplete = !feedbackAudioPlayback.isPlaying();
+
+    const isComplete = (feedbackTypingAnimation.isTypingSkipped() || feedbackWasSkipped())
+      ? isTypingComplete
+      : (isTypingComplete && isAudioComplete);
+
+    if (isComplete) {
+      if (feedbackAutoProceedTimeout) return;
+      feedbackAutoProceedTimeout = setTimeout(() => {
+        proceedFeedbackToNext();
+        feedbackAutoProceedTimeout = null;
+      }, 400);
+    } else {
+      if (feedbackAutoProceedTimeout) {
+        clearTimeout(feedbackAutoProceedTimeout);
+        feedbackAutoProceedTimeout = null;
+      }
+    }
   });
 
   // 피드백 오디오 컨텍스트 활성화 함수
@@ -421,13 +462,53 @@ const FinishingUpq = () => {
       setCurrentPlayingScriptIndex(scriptIndex);
       audioPlayback.playAudio(script.voice, {
         onEnded: () => {
-          // 자동 진행 제거 - 사용자가 버튼을 눌러야 함
+          // 자동 재생 모드는 아래 별도 effect에서 처리
+          // 수동 모드에서는 사용자가 버튼으로 진행
         },
       });
     }
 
     // 오디오 시작과 동시에 타이핑 애니메이션 시작
     typingAnimation.startTyping(script.script);
+  });
+
+  // 메인 스크립트 자동 재생: 마지막 스크립트 전까지 오디오+타이핑 완료 시 자동으로 다음 스크립트로 진행
+  createEffect(() => {
+    if (!isAutoPlay()) {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    const script = currentScript();
+    if (!script) return;
+
+    // 마지막 스크립트에서는 자동으로 피드백 단계로 넘기지 않고 "다음으로" 버튼 사용
+    if (isLastScript()) return;
+
+    const isTypingComplete =
+      typingAnimation.displayedMessage().length === script.script.length ||
+      typingAnimation.isTypingSkipped();
+    const isAudioComplete = !audioPlayback.isPlaying();
+
+    const isComplete = (typingAnimation.isTypingSkipped() || wasSkipped())
+      ? isTypingComplete
+      : (isTypingComplete && isAudioComplete);
+
+    if (isComplete) {
+      if (autoProceedTimeout) return;
+      autoProceedTimeout = setTimeout(() => {
+        proceedToNext();
+        autoProceedTimeout = null;
+      }, 400);
+    } else {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+    }
   });
 
   // 오디오 컨텍스트 활성화 함수
@@ -525,6 +606,31 @@ const FinishingUpq = () => {
           }}
         >
           <div class={styles.contentWrapper}>
+            {/* 메인 자동 재생 토글 버튼 */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '2rem',
+                left: '2rem',
+                'z-index': 5,
+              }}
+            >
+              <button
+                onClick={() => setIsAutoPlay(prev => !prev)}
+                style={{
+                  padding: '0.4rem 0.8rem',
+                  'border-radius': '1rem',
+                  border: '1px solid #fff',
+                  background: isAutoPlay() ? '#4caf50' : 'rgba(0,0,0,0.4)',
+                  color: '#fff',
+                  'font-size': '0.8rem',
+                  cursor: 'pointer',
+                  'font-family': 'CookieRun',
+                }}
+              >
+                자동재생: {isAutoPlay() ? 'ON' : 'OFF'}
+              </button>
+            </div>
             <Show when={currentScriptData()?.maiPng && !isFading()}>
               <img
                 src={displayCharacterUrl()}
@@ -537,9 +643,9 @@ const FinishingUpq = () => {
                 <SpeechBubble 
                   message={typingAnimation.displayedMessage()} 
                   size={1000}
-                  showNavigation={true}
-                  onNext={proceedToNext}
-                  onPrev={proceedToPrev}
+                  showNavigation={!isAutoPlay()}
+                  onNext={isAutoPlay() ? undefined : proceedToNext}
+                  onPrev={isAutoPlay() ? undefined : proceedToPrev}
                   isComplete={() => {
                     const script = currentScript();
                     if (!script) return false;
@@ -554,6 +660,8 @@ const FinishingUpq = () => {
                   canGoNext={() => {
                     const script = currentScript();
                     if (!script) return false;
+                    // 자동 재생 모드에서는 다음 버튼 숨김
+                    if (isAutoPlay()) return false;
                     const isTypingComplete = typingAnimation.displayedMessage().length === script.script.length || typingAnimation.isTypingSkipped();
                     const isAudioComplete = !audioPlayback.isPlaying();
                     // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
@@ -562,7 +670,7 @@ const FinishingUpq = () => {
                       : (isTypingComplete && isAudioComplete);
                     return isComplete && currentScriptIndex() < finishingUpqScripts.length - 1;
                   }}
-                  canGoPrev={() => currentScriptIndex() > 0}
+                  canGoPrev={() => !isAutoPlay() && currentScriptIndex() > 0}
                 />
               </div>
             </Show>
@@ -593,6 +701,31 @@ const FinishingUpq = () => {
             padding: '1rem 2rem 1rem',
             'background-color': 'white',
           }}>
+            {/* 피드백 자동 재생 토글 버튼 */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '2rem',
+                left: '2rem',
+                'z-index': 5,
+              }}
+            >
+              <button
+                onClick={() => setIsFeedbackAutoPlay(prev => !prev)}
+                style={{
+                  padding: '0.4rem 0.8rem',
+                  'border-radius': '1rem',
+                  border: '1px solid #fff',
+                  background: isFeedbackAutoPlay() ? '#4caf50' : 'rgba(0,0,0,0.4)',
+                  color: '#fff',
+                  'font-size': '0.8rem',
+                  cursor: 'pointer',
+                  'font-family': 'CookieRun',
+                }}
+              >
+                자동재생: {isFeedbackAutoPlay() ? 'ON' : 'OFF'}
+              </button>
+            </div>
             {/* 배경 이미지 레이어 (투명도 적용) */}
             <div
               class={feedbackStyles.backgroundLayer}
@@ -608,9 +741,9 @@ const FinishingUpq = () => {
                     {feedbackCurrentScriptImage()}
                     <SpeechBubble 
                       message={feedbackTypingAnimation.displayedMessage()}
-                      showNavigation={true}
-                      onNext={proceedFeedbackToNext}
-                      onPrev={proceedFeedbackToPrev}
+                      showNavigation={!isFeedbackAutoPlay()}
+                      onNext={isFeedbackAutoPlay() ? undefined : proceedFeedbackToNext}
+                      onPrev={isFeedbackAutoPlay() ? undefined : proceedFeedbackToPrev}
                       isComplete={() => {
                         const script = feedbackCurrentScript();
                         if (!script) return false;
@@ -625,6 +758,8 @@ const FinishingUpq = () => {
                       canGoNext={() => {
                         const script = feedbackCurrentScript();
                         if (!script) return false;
+                        // 피드백 자동 재생 모드에서는 다음 버튼 숨김
+                        if (isFeedbackAutoPlay()) return false;
                         const isTypingComplete = feedbackTypingAnimation.displayedMessage().length === script.script.length || feedbackTypingAnimation.isTypingSkipped();
                         const isAudioComplete = !feedbackAudioPlayback.isPlaying();
                         // 스킵된 경우 오디오 재생 여부와 관계없이 완료로 간주
@@ -633,7 +768,7 @@ const FinishingUpq = () => {
                           : (isTypingComplete && isAudioComplete);
                         return isComplete && feedbackScriptIndex() < aiFeedbackReviewScripts.length - 1;
                       }}
-                      canGoPrev={() => feedbackScriptIndex() > 0}
+                      canGoPrev={() => !isFeedbackAutoPlay() && feedbackScriptIndex() > 0}
                     />
                   </div>
                 </Show>

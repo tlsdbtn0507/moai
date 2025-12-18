@@ -1,9 +1,10 @@
-import { createSignal, createMemo, Show, For } from 'solid-js';
+import { createSignal, createMemo, Show, For, createEffect } from 'solid-js';
 import { getS3ImageURL } from '../../utils/loading';
 import styles from './DetermineInfoPractice.module.css';
 
 interface ConditionChecklistProps {
   onCorrect: () => void;
+  scriptId?: number; // 스크립트 id를 prop으로 받아서 변경 시 상태 초기화
 }
 
 // 조건 목록 및 정답 정의
@@ -25,6 +26,18 @@ export function ConditionChecklist(props: ConditionChecklistProps) {
   // 모달 상태 관리
   const [showAnswerModal, setShowAnswerModal] = createSignal(false);
 
+  // 스크립트 id가 변경되면 상태 초기화
+  let previousScriptId: number | undefined = undefined;
+  createEffect(() => {
+    const currentScriptId = props.scriptId;
+    if (currentScriptId !== undefined && currentScriptId !== previousScriptId) {
+      console.log('ConditionChecklist: Script ID changed from', previousScriptId, 'to', currentScriptId, '- resetting state');
+      setCheckedConditions({});
+      setShowAnswerModal(false);
+      previousScriptId = currentScriptId;
+    }
+  });
+
   // 체크박스 상태 변경 핸들러
   const handleCheckboxChange = (condition: string, checked: boolean) => {
     setCheckedConditions((prev) => ({
@@ -44,14 +57,20 @@ export function ConditionChecklist(props: ConditionChecklistProps) {
       (key) => checkedConditions()[key],
     );
 
+    console.log('ConditionChecklist: checkAnswer called, scriptId:', props.scriptId, 'checked:', checked);
+
     const isCorrect =
       checked.length === CORRECT_ANSWERS.length &&
       CORRECT_ANSWERS.every((answer) => checked.includes(answer)) &&
       checked.every((condition) => CORRECT_ANSWERS.includes(condition));
 
+    console.log('ConditionChecklist: isCorrect:', isCorrect, 'CORRECT_ANSWERS:', CORRECT_ANSWERS);
+
     if (isCorrect) {
+      console.log('ConditionChecklist: Answer is correct, calling onCorrect, scriptId:', props.scriptId);
       props.onCorrect();
     } else {
+      console.log('ConditionChecklist: Answer is incorrect, showing modal');
       setShowAnswerModal(true);
     }
   };

@@ -18,6 +18,7 @@ const DetermineInfo = () => {
   const [isModalOpen, setIsModalOpen] = createSignal(false);
   const [showContentImage, setShowContentImage] = createSignal(false);
   const [showIntermediateComponent, setShowIntermediateComponent] = createSignal(false);
+  const [isAutoPlay, setIsAutoPlay] = createSignal(false);
   const navigate = useNavigate();
   const params = useParams();
 
@@ -131,6 +132,78 @@ const DetermineInfo = () => {
     return conversation.currentScriptIndex() > 0;
   });
 
+  // 자동 재생 모드: 오디오+타이핑 완료 후,
+  // - 이미지가 있는 스크립트는 이미지가 표시된 뒤 3초 후 자동 진행
+  // - 그 외 스크립트는 짧은 딜레이 후 자동 진행
+  let autoProceedTimeout: ReturnType<typeof setTimeout> | null = null;
+  createEffect(() => {
+    if (!isAutoPlay()) {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    const script = currentScript();
+    if (!script) return;
+
+    // id 5인 경우: 자동재생일 때도 CombinationModal을 띄우고, 자동으로 다음 스크립트로 넘기지 않음
+    if (script.id === 5) {
+      if (!showIntermediateComponent() && conversation.isComplete()) {
+        setShowIntermediateComponent(true);
+      }
+      // 모달이 떠 있는 동안에는 자동 진행 금지
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    // 마지막 스크립트에서는 자동으로 다음 차시로 넘기지 않고 "다음으로" 버튼 사용
+    if (conversation.isLastScript()) {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    // 아직 대사가 완전히 끝나지 않았으면 대기
+    if (!conversation.isComplete()) {
+      if (autoProceedTimeout) {
+        clearTimeout(autoProceedTimeout);
+        autoProceedTimeout = null;
+      }
+      return;
+    }
+
+    // 기본 딜레이 400ms
+    let delayMs = 400;
+
+    // id가 8인 경우에만:
+    // - showContentImage()가 true가 된 뒤
+    // - 3초 동안 이미지를 보여주고 나서 다음 스크립트로 진행
+    if (script.id === 8) {
+      if (!showContentImage()) {
+        // 아직 이미지가 안 뜬 상태라면 기다린다
+        if (autoProceedTimeout) {
+          clearTimeout(autoProceedTimeout);
+          autoProceedTimeout = null;
+        }
+        return;
+      }
+      delayMs = 3000;
+    }
+
+    if (autoProceedTimeout) return;
+    autoProceedTimeout = setTimeout(() => {
+      conversation.proceedToNext();
+      autoProceedTimeout = null;
+    }, delayMs);
+  });
+
   return (
     <Show when={isReady()} fallback={<LoadingSpinner />}>
       <div
@@ -140,6 +213,31 @@ const DetermineInfo = () => {
         }}
       >
         <div class={styles.contentWrapper}>
+          {/* 자동 재생 토글 버튼 */}
+          <div
+            style={{
+              position: 'absolute',
+              top: currentScript()?.id === 2 || currentScript()?.id === 3 ? '-21rem' : '-2rem',
+              left: '2rem',
+              'z-index': 5,
+            }}
+          >
+            <button
+              onClick={() => setIsAutoPlay(prev => !prev)}
+              style={{
+                padding: '0.4rem 0.8rem',
+                'border-radius': '1rem',
+                border: '1px solid #fff',
+                background: isAutoPlay() ? '#4caf50' : 'rgba(0,0,0,0.4)',
+                color: '#fff',
+                'font-size': '0.8rem',
+                cursor: 'pointer',
+                'font-family': 'CookieRun',
+              }}
+            >
+              자동재생: {isAutoPlay() ? 'ON' : 'OFF'}
+            </button>
+          </div>
           {/* 콘텐츠 렌더링 */}
           <Show when={currentScript()?.content && !isFading()}>
             <Show
@@ -175,9 +273,9 @@ const DetermineInfo = () => {
               <SpeechBubble 
                 message={conversation.displayedMessage()} 
                 size={800}
-                showNavigation={true}
-                onNext={handleNext}
-                onPrev={conversation.proceedToPrev}
+                showNavigation={!isAutoPlay()}
+                onNext={isAutoPlay() ? undefined : handleNext}
+                onPrev={isAutoPlay() ? undefined : conversation.proceedToPrev}
                 scriptHistory={(() => {
                   const currentIndex = conversation.currentScriptIndex();
                   return introScripts.slice(0, currentIndex + 1).map(s => ({ id: s.id, script: s.script }));
@@ -186,11 +284,12 @@ const DetermineInfo = () => {
                 onModalStateChange={setIsModalOpen}
                 isComplete={conversation.isComplete}
                 canGoNext={() => {
+                  if (isAutoPlay()) return false;
                   if (!conversation.isComplete()) return false;
                   if (shouldShowIntermediate()) return true;
                   return !conversation.isLastScript();
                 }}
-                canGoPrev={() => conversation.currentScriptIndex() > 0}
+                canGoPrev={() => !isAutoPlay() && conversation.currentScriptIndex() > 0}
               />
             </div>
           </Show>
@@ -201,7 +300,7 @@ const DetermineInfo = () => {
               <div class={styles.subtitleText}>
                 {conversation.displayedMessage()}
               </div>
-              <Show when={shouldShowPrevButton()}>
+              <Show when={!isAutoPlay() && shouldShowPrevButton()}>
                 <button
                   onClick={conversation.proceedToPrev}
                   class={styles.navButtonPrev}
@@ -209,7 +308,7 @@ const DetermineInfo = () => {
                   이전
                 </button>
               </Show>
-              <Show when={shouldShowNextButton()}>
+              <Show when={!isAutoPlay() && shouldShowNextButton()}>
                 <button
                   onClick={handleNext}
                   class={styles.navButtonNext}
@@ -222,7 +321,13 @@ const DetermineInfo = () => {
 
           {/* id가 5인 스크립트 완료 후 중간 컴포넌트 */}
           <Show when={showIntermediateComponent()}>
-            <CombinationModal onNext={handleIntermediateNext} />
+            <CombinationModal 
+              onNext={handleIntermediateNext} 
+              onClose={() => {
+                // 모달을 명시적으로 닫기 (자동재생 모드에서도 확실히 닫히도록)
+                setShowIntermediateComponent(false);
+              }} 
+            />
           </Show>
         </div>
 
