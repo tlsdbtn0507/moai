@@ -481,7 +481,7 @@ export const feedbackScripts: FeedbackScript[] = [
     },
     {
         id: 2,
-        script: 'AI가 자연스럽게 말하더라도\n질문을 제대로 안 읽고 대답할 때가 많거든.',
+        script: '우리는 AI가 틀릴 때 ‘왜 틀렸는지’를 살펴보고,\n더 정확히 답하게 만드는 질문을 직접 설계해봤어.',
         maiPic: '2-7/jumpingMai.png',
         voiceUrl: '2-7/2-7_closing_2.mp3',
     },
