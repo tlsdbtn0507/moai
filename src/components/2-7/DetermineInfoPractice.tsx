@@ -6,6 +6,7 @@ import { LoadingSpinner } from '../LoadingSpinner';
 import { practiceScripts } from '../../data/scripts/2-7';
 import { useMoaiConversation } from '../../utils/hooks/useMoaiConversation';
 import { ConditionChecklist } from './ConditionChecklist';
+import { ConfirmButton } from '../1-3/ConfirmButton';
 
 import pageContainerStyles from '../../styles/PageContainer.module.css';
 import styles from './DetermineInfoPractice.module.css';
@@ -153,7 +154,7 @@ const DetermineInfoPractice = () => {
     <Show when={isReady()} fallback={<LoadingSpinner />}>
       <div class={`${pageContainerStyles.container} ${styles.mainContainer}`}>
         <div class={styles.contentCard}>
-          <p class={styles.titleBadge}>실습: AI 답변 검증하기</p>
+          <p class={styles.titleBadge}>실습: AI에게 정확하게 질문하기</p>
 
           <Show when={currentChatImage()}>
             <div class={styles.chatImageContainer}>
@@ -163,10 +164,10 @@ const DetermineInfoPractice = () => {
                 class={styles.chatImage}
               />
             </div>
-            <Show when={conversation.currentScriptIndex() < 5 }>
+            <Show when={conversation.currentScript()?.id === 10 || conversation.currentScript()?.id === 11}>
               <ConditionChecklist onCorrect={conversation.proceedToNext} />
             </Show>
-            <Show when={conversation.currentScript()?.id === 8 && conversation.isComplete()}>
+            <Show when={conversation.currentScript()?.id === 5 && conversation.isComplete()}>
               <form onSubmit={handleSubmit} class={styles.form}>
                 <input
                   type="text"
@@ -185,7 +186,7 @@ const DetermineInfoPractice = () => {
                 </button>
               </form>
             </Show>
-            <Show when={conversation.currentScriptIndex() >= 5  && conversation.currentScriptIndex() < 9}>
+            <Show when={conversation.currentScript()?.id >= 3 && conversation.currentScript()?.id <= 5}>
               <img src={checkListImg} alt="Check List" class={styles.checkListImage} />
             </Show>
           </Show>
@@ -211,24 +212,30 @@ const DetermineInfoPractice = () => {
               }}
               canGoNext={() => {
                 const currentId = conversation.currentScript()?.id;
-                // 스크립트 id가 3 또는 8일 때는 다음 버튼 숨김
-                if (currentId === 3 || currentId === 8) return false;
+                // 스크립트 id가 5, 9, 10, 13일 때는 다음 버튼 숨김
+                if (currentId === 5 || currentId === 9 || currentId === 10 || currentId === 13) return false;
                 if (conversation.isLastScript()) return false;
                 return conversation.isComplete();
               }}
               canGoPrev={() => conversation.currentScriptIndex() > 0}
             />
+            <Show when={(conversation.currentScript()?.id === 9 || conversation.currentScript()?.id === 13) && conversation.isComplete()}>
+              <div class={styles.confirmButtonWrapper}>
+                <ConfirmButton 
+                  onClick={() => {
+                    const currentId = conversation.currentScript()?.id;
+                    if (currentId === 9) {
+                      conversation.proceedToNext();
+                    } else if (currentId === 13) {
+                      navigate('/2/7/4');
+                    }
+                  }}
+                  text="알겠어!"
+                />
+              </div>
+            </Show>
           </div>
-          <Show when={conversation.isLastScript() && conversation.isComplete() && !isModalOpen()}>
-            <div class={styles.buttonGroup}>
-              <button
-                onClick={() => navigate('/2/7/4')}
-                class={`${styles.primaryButton} ${styles.goNextButton}`}
-              >
-                다음으로
-              </button>
-            </div>
-          </Show>
+          {/* <Show when={con  */}
         </div>
       </div>
     </Show>

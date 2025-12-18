@@ -29,11 +29,11 @@
 .titleBadge {
   background-color: #b0c8ff;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 1.3rem;
   border-radius: 2rem;
   margin: 0 0 1rem 0;
-  padding: 1rem;
-  width: 40%;
+  padding: 0.5rem;
+  width: 38%;
   text-align: center;
 }
 
@@ -258,4 +258,17 @@
   font-size: 1rem;
   font-family: CookieRun;
   cursor: pointer;
+}
+
+.confirmButtonWrapper {
+  position: absolute;
+  bottom: 4rem;
+  left: 58%;
+  z-index: 2;
+  width: 50%;
+}
+
+.confirmButtonWrapper button {
+  position: absolute;
+  right: 10%;
 }
