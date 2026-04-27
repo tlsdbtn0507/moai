@@ -1,4 +1,4 @@
-const OPENAI_CHAT_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+const OPENAI_CHAT_ENDPOINT = '/v1/chat/completions';
 
 type ChatMessage = {
     role: 'system' | 'user' | 'assistant';
@@ -439,7 +439,7 @@ export async function evaluatePrompts(
 
 // ==================== AI 방화벽 기능 ====================
 
-const MODERATION_ENDPOINT = 'https://api.openai.com/v1/moderations';
+const MODERATION_ENDPOINT = '/v1/moderations';
 
 /**
  * Moderation API를 사용하여 콘텐츠 안전성 검증

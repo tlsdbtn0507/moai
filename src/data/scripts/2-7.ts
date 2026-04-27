@@ -18,26 +18,26 @@ type titleSection = {
 
 interface ConceptScript {
     id: number;
-    script:string;
-    titleSection : null | titleSection;
-    contentPic : null | string;
+    script: string;
+    titleSection: null | titleSection;
+    contentPic: null | string;
     voiceUrl: string;
-    maiPic : string;
+    maiPic: string;
 }
 
 interface PracticeScript {
     id: number;
     script: string;
-    maiPic:string;
-    isSpeechBubbleBig:boolean;
-    chatPng:null | string;
+    maiPic: string;
+    isSpeechBubbleBig: boolean;
+    chatPng: null | string;
     voiceUrl: string;
 }
 
 interface FeedbackScript {
     id: number;
     script: string;
-    maiPic:string;
+    maiPic: string;
     voiceUrl: string;
 }
 
@@ -71,7 +71,7 @@ export const introScripts: IntroScript[] = [
     },
     {
         id: 4,
-        script:'근데 있지... 이게 진짜 조사에서\n나온 수치인지 확인해본 적 있어?',
+        script: '근데 있지... 이게 진짜 조사에서\n나온 수치인지 확인해본 적 있어?',
         content: '2-7/quriousMai.png',
         bgPng: '2-7/desk.png',
         voiceUrl: '2-7/2-7_intro_4.mp3',
@@ -122,7 +122,7 @@ export const introScripts: IntroScript[] = [
         bgPng: '2-7/desk.png',
         voiceUrl: '2-7/2-7_intro_9.mp3',
         isBgFaded: true,
-        isSpeechBubble: true,  
+        isSpeechBubble: true,
     },
     {
         id: 10,
@@ -310,7 +310,7 @@ export const conceptScripts: ConceptScript[] = [
         id: 20,
         script: '이 두 역할이 맞아야 정확한 정보를 쓸 수 있어.',
         titleSection: { title: '그래서', description: '<strong>최종 결정</strong>은 사람이 해야만 한다!' },
-        contentPic: '2-7/connected.png',
+        contentPic: '2-7/connnected.png',
         voiceUrl: '2-7/2-7_development_20.mp3',
         maiPic: '2-7/reportingMai.png',
     },
@@ -343,7 +343,7 @@ export const conceptScripts: ConceptScript[] = [
         script: '중요한 건 완벽하게 검증하는 게 아니라,\n의심해야 할 부분을 빠르게 찾아내는 능력을 갖추는 거야.',
         titleSection: null,
         contentPic: '2-7/texts.png',
-    voiceUrl: '2-7/2-7_development_24.mp3',
+        voiceUrl: '2-7/2-7_development_24.mp3',
         maiPic: '2-7/reportingMai.png',
     },
     {
@@ -383,7 +383,7 @@ export const conceptScripts: ConceptScript[] = [
 export const practiceScripts: PracticeScript[] = [
     {
         id: 1,
-        script:'이제 실습을 한번 시작해보자.\nAI가 자연스럽게  말하더라도\n질문을 제대로 안 읽고 대답할 때가 많거든.',
+        script: '이제 실습을 한번 시작해보자.\nAI가 자연스럽게  말하더라도\n질문을 제대로 안 읽고 대답할 때가 많거든.',
         maiPic: '2-7/presentHoldingMai.png',
         isSpeechBubbleBig: true,
         chatPng: null,
@@ -423,7 +423,7 @@ export const practiceScripts: PracticeScript[] = [
     },
     {
         id: 6,
-        script:'잘했어! 질문을 조건에 맞게 구체적으로하면\nAI가 놓치지 않고 정확하게 답할 확률이\n훨씬 높아져!',
+        script: '잘했어! 질문을 조건에 맞게 구체적으로하면\nAI가 놓치지 않고 정확하게 답할 확률이\n훨씬 높아져!',
         maiPic: '2-7/presentHoldingMai.png',
         isSpeechBubbleBig: true,
         chatPng: null,
@@ -452,11 +452,11 @@ export const practiceScripts: PracticeScript[] = [
         isSpeechBubbleBig: true,
         chatPng: null,
         voiceUrl: '2-7/2-7_practice_9N.mp3',
-    }, 
+    },
     {
         id: 10,
         script: '겉보기엔 자연스럽지만\n잘 보면 많이 달라!\nAI가 놓친 조건들이 뭐가 있을까?\n사용한 조건들만 클릭해보자!',
-        maiPic: '2-7/magnifyingMaiR.png' ,
+        maiPic: '2-7/magnifyingMaiR.png',
         isSpeechBubbleBig: false,
         chatPng: '2-7/chatInterface.png',
         voiceUrl: '2-7/2-7_practice_10N.mp3',
@@ -485,7 +485,7 @@ export const practiceScripts: PracticeScript[] = [
         chatPng: null,
         voiceUrl: '2-7/2-7_practice_13.mp3',
     }
-    
+
 ]
 
 export const feedbackScripts: FeedbackScript[] = [

@@ -1,4 +1,6 @@
-const OPENAI_IMAGE_ENDPOINT = 'https://api.openai.com/v1/images/generations';
+import { checkContentSafety } from './gptChat';
+
+const OPENAI_IMAGE_ENDPOINT = '/v1/images/generations';
 
 type GenerateImageResponse = {
   data: Array<{ url?: string; b64_json?: string }>;
@@ -8,6 +10,12 @@ export async function generateImageFromPrompt(prompt: string): Promise<string> {
   const apiKey = import.meta.env.VITE_GPT_API_KEY;
   if (!apiKey) {
     throw new Error('VITE_GPT_API_KEY가 설정되지 않았습니다.');
+  }
+
+  // 1단계: 프롬프트 안전성 검사 (AI 방화벽)
+  const moderationResult = await checkContentSafety(prompt);
+  if (!moderationResult.isSafe) {
+    throw new Error('죄송합니다. 부적절한 내용이 감지되어 이미지를 생성할 수 없습니다. 교육 목적에 맞는 프롬프트를 입력해주세요.');
   }
 
   const response = await fetch(OPENAI_IMAGE_ENDPOINT, {
