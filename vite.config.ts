@@ -15,6 +15,11 @@ export default defineConfig({
         target: 'https://api.openai.com',
         changeOrigin: true,
       },
+      '/storage': {
+        target: 'https://firebasestorage.googleapis.com/v0/b/moai-308a3.firebasestorage.app/o',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/storage/, ''),
+      },
     },
   },
   test: {

@@ -7,7 +7,7 @@ export function getS3ImageURL(filename: string): string {
   }
   // 2-7, 4-2 등 나머지 이미지들은 전달받은 폴더 경로를 그대로 사용합니다.
 
-  const baseUrl = "https://firebasestorage.googleapis.com/v0/b/moai-308a3.firebasestorage.app/o/";
+  const baseUrl = "/storage/";
   return `${baseUrl}${encodeURIComponent(finalPath)}?alt=media`;
 }
 
@@ -23,7 +23,7 @@ export function getS3TTSURL(filename: string): string {
   
   // 최상위 tts 폴더 경로를 추가합니다.
   const finalPath = `tts/${fullPath}`;
-  const baseUrl = "https://firebasestorage.googleapis.com/v0/b/moai-308a3.firebasestorage.app/o/";
+  const baseUrl = "/storage/";
   return `${baseUrl}${encodeURIComponent(finalPath)}?alt=media`;
 }
 

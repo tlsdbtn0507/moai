@@ -1,3 +1,18 @@
+# 1. OpenAI API 프록시 설정 (상단에 위치해야 함)
+[[redirects]]
+  from = "/v1/*"
+  to = "https://api.openai.com/v1/:splat"
+  status = 200
+  force = true
+
+# 2. Firebase Storage 이미지 프록시 추가 (이미지 CORS 해결)
+[[redirects]]
+  from = "/storage/*"
+  to = "https://firebasestorage.googleapis.com/v0/b/moai-308a3.firebasestorage.app/o/:splat"
+  status = 200
+  force = true
+
+# 3. 기존 SPA 라우팅 설정 (하단 유지)
 [[redirects]]
   from = "/*"
   to = "/index.html"
